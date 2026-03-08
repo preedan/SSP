@@ -161,8 +161,13 @@
                 createBtn.disabled = true;
                 hideMessage();
                 ensureProfile().then(function (profile) {
-                    return getSupabase().auth.getUser().then(function (authRes) {
-                        var uid = authRes.data.user ? authRes.data.user.id : profile.user_id;
+                    return getSupabase().auth.getSession().then(function (sessionRes) {
+                        var session = sessionRes.data.session;
+                        if (!session) {
+                            showMessage("Nicht angemeldet. Bitte erneut anmelden.", "error");
+                            return Promise.reject(new Error("Keine Session"));
+                        }
+                        var uid = session.user.id;
                         return getSupabase().from("teams").insert({
                             name: teamName,
                             created_by: uid
@@ -187,8 +192,11 @@
                     teamNameInput.value = "";
                     loadTeams();
                 }).catch(function (err) {
-                    if (err.message !== "Profil fehlt") {
+                    if (err.message !== "Profil fehlt" && err.message !== "Keine Session") {
                         showMessage(err.message || "Team konnte nicht erstellt werden.", "error");
+                    }
+                    if (err.message && err.message.indexOf("row-level security") >= 0) {
+                        console.warn("RLS-Fehler: Prüfe in Browser DevTools → Network → Request zu Supabase ob ein 'Authorization: Bearer …' Header mitgeschickt wird.");
                     }
                 }).finally(function () {
                     createBtn.disabled = false;
