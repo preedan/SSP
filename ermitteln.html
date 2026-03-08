@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schere, Stein, Papier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+            font-family: 'Baloo 2', cursive;
+            background-color: #f0f0f0;
+            transition: background-color 0.5s ease;
+        }
+        .back-link {
+            font-size: 0.8em; /* Matched font size for consistency */
+            text-align: center;
+            background-color: #267bb5;
+            color: white;
+            padding: 6px 12px; /* Consistent padding to avoid shrinking */
+            border-radius: 5px;
+            text-decoration: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            border: 0; /* Explicitly remove any border */
+            box-shadow: none; /* Remove any box shadow that might mimic a border */
+        }
+
+        h2, p {
+            text-align: center;
+            margin-top: 0px; /* Increased top margin to position the header lower */
+            margin-bottom: 0px; /* Adjust bottom margin as needed */
+        }
+        h1 {
+            font-size: 2em; /* Ensure font size is consistent */
+            text-align: center;
+            margin-top: 20px; /* Increased top margin to position the header lower */
+            margin-bottom: 0px; /* Adjust bottom margin as needed */
+        }
+        button {
+            background-color: #267bb5;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: 'Baloo 2', cursive;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: block;
+            margin: 0px auto;
+        }
+        button:hover {
+            background-color: #1a5d8b;
+        }
+        .media-container {
+            display: none;
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-top: 10px;
+        }
+        img, video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin-bottom: 0px;
+        }
+        @media (max-width: 768px) {
+    .back-link {
+        font-size: 0.8em; /* Keep font size unchanged for responsiveness */
+        padding: 6px 12px; /* Keep padding unchanged to maintain size */
+    }
+}
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">Zurück zur Startseite</a>
+    <h1>Variante ermitteln</h1>
+    <p id="loadStatus" style="text-align:center;margin-top:8px;"></p>
+    <button id="startButton" onclick="startImageRotation()" disabled>Start</button>
+    <div class="media-container" id="mediaContainer">
+        <h2 id="variantName"></h2>
+        <img id="variantImage" src="" alt="Variant image" style="display:none;">
+        <video id="variantVideo" controls style="display:none;">
+            <source src="" type="video/mp4">
+        </video>
+        <p id="variantDescription"></p>  
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script>
+        let contentList = [];
+        let currentIndex = 0;
+        let intervalId;
+        let rotationInProgress = false;
+
+        /** Varianten aus der Tabelle variants laden (nur is_active = true). */
+        async function loadVariants() {
+            const statusEl = document.getElementById("loadStatus");
+            const btn = document.getElementById("startButton");
+            statusEl.textContent = "Varianten werden geladen…";
+            try {
+                const { data, error } = await getSupabase()
+                    .from("variants")
+                    .select("*")
+                    .eq("is_active", true);
+                if (error) throw error;
+                contentList = (data || []).map((row) => ({
+                    type: row.video_url ? "video" : "image",
+                    source: row.video_url || row.image_url || "",
+                    text: row.name || "",
+                    description: row.description || ""
+                }));
+                statusEl.textContent = "";
+                btn.disabled = contentList.length === 0;
+                if (contentList.length === 0) statusEl.textContent = "Keine aktiven Varianten gefunden.";
+            } catch (e) {
+                console.error("Fehler beim Laden der Varianten:", e);
+                statusEl.textContent = "Varianten konnten nicht geladen werden. Bitte Supabase-URL und Publishable Key prüfen.";
+                btn.disabled = true;
+            }
+        }
+
+        function startImageRotation() {
+            if (rotationInProgress || contentList.length === 0) return;
+            rotationInProgress = true;
+            const icons = ["🪨", "✂️", "📄"];
+            let iconIndex = 0;
+
+            document.getElementById("startButton").disabled = true;
+            document.getElementById("mediaContainer").style.display = "none";
+
+            intervalId = setInterval(() => {
+                document.getElementById("startButton").textContent = icons[iconIndex % icons.length];
+                iconIndex++;
+            }, 200);
+
+            setTimeout(() => {
+                clearInterval(intervalId);
+                const selectedVariantIndex = Math.floor(Math.random() * contentList.length);
+                displaySelectedVariant(selectedVariantIndex);
+                document.getElementById("startButton").textContent = "Start";
+                document.getElementById("startButton").disabled = false;
+                rotationInProgress = false;
+            }, 5000);
+        }
+
+        function displaySelectedVariant(index) {
+            const variant = contentList[index];
+            document.getElementById("variantName").textContent = variant.text;
+            document.getElementById("variantDescription").textContent = variant.description;
+            if (variant.type === "image") {
+                document.getElementById("variantImage").src = variant.source;
+                document.getElementById("variantImage").style.display = "block";
+                document.getElementById("variantVideo").style.display = "none";
+            } else if (variant.type === "video") {
+                document.getElementById("variantVideo").querySelector("source").src = variant.source;
+                document.getElementById("variantVideo").load();
+                document.getElementById("variantVideo").style.display = "block";
+                document.getElementById("variantImage").style.display = "none";
+            }
+            document.getElementById("mediaContainer").style.display = "block";
+        }
+
+        document.addEventListener("DOMContentLoaded", loadVariants);
+    </script>
+</body>
+</html>

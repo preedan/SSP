@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schere, Stein, Papier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-family: 'Baloo 2', cursive;
+            background-color: #ffffff;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 2em;
+            margin: 20px 0;
+        }
+        img {
+            max-width: 100%;
+            max-height: 30vh;
+            object-fit: contain;
+        }
+        .quote {
+            font-size: 1em;
+            color: #555;
+            margin: 20px auto;
+            opacity: 1;
+            transition: opacity 2s;
+            text-align: center;
+            white-space: normal;
+            padding: 0 10px;
+            height: 6em; /* Adjusted to fit 3 lines of text */
+        }
+        .buttons-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            flex: 1;
+            min-width: 150px; /* Minimum width to allow text to break */
+            max-width: 1fr; /* Allows button to fill the space in the container */
+            text-decoration: none;
+            padding: 10px;
+            background-color: #267bb5;
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            white-space: normal; /* Allows text to wrap */
+        }
+        .btn:hover {
+            background-color: #1a5d8b;
+        }
+    </style>     
+</head>
+<body>
+    <div class="container">
+        <h1 id="header">Schere, Stein, Papier</h1>
+        <img src="Startpage_picture.JPG" alt="Rock Paper Scissors Illustration">
+        <div id="quote-container" class="quote">Quotes will appear here and change every 10 seconds.</div>
+        <div class="buttons" id="mainButtons">
+            <a href="uebersicht.html" class="btn">Varianten Übersicht</a>
+            <a href="ermitteln.html" class="btn">Varianten ermitteln</a>
+        </div>
+        <div class="buttons" id="authButtons" style="margin-top:10px; display:none;"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script>
+        const quotes = [
+            "Im Kampf für die Unabhängigkeit Indiens setze ich auf die Gewaltlosigkeit von Papier. - Mahatma Gandhi",
+            "Und sie bewegt sich doch - Galileo Galilei (Nachdem sein Gegenspieler beim blinden Bandit die linke Hand bewegte um zu schummeln.)",
+            "Stein oder nicht Stein, das ist hier die Frage. - William Shakespeare",
+            "Denn das Wort ist wahr, daß ein Extrem regelmäßig das entgegengesetzte Extrem auslöst. - Sokrates (Nachdem in einer Runde alle Spieler Papier nahmen.)",
+            "Viel zu lernen du noch hast - Yoda (beim Spielen von Kreiz-Deifi Delüx)",
+            "Der gute alte Stein ermöglichte es mir, der erste Mensch am Mond zu sein. - Neil Armstrong (Nach dem Sieg über Buzz Aldrin.)",
+            "Ich kam, ich sah, ich siegte - Julius Caesar (beim Spielen der klassischen Variante)",
+            "Dumm ist der, der Dummes tut - Forrest Gump (Beim Schere Stein Extreme, nachdem sein Gegenspieler Papier nahm.)",
+            "Es ist vollbracht! - Jesus von Nazareth (Nach der Erfindung des Kreuzers.)",
+            "Es werde Licht - Gott (Nach einer Partie Blinder Bandit.)",
+            "Wer kämpft, kann verlieren. Wer nicht kämpft, hat schon verloren. - Bertolt Brecht (Vor der nächsten Runde Double Trouble.)",
+            "In Schero Veritas - Erasmus von Rotterdam",
+            "Gott würfelt nicht. Er spielt Schere, Stein, Papier. - Albert Einstein",
+            "I have a dream that one day this nation will rise up and live out the true meaning of this game. - Martin Luther King",
+            "Ein Stein - Albert Einstein"
+        ];
+        let currentQuoteIndex = Math.floor(Math.random() * quotes.length);
+        const quoteContainer = document.getElementById('quote-container');
+        const header = document.getElementById('header');
+
+        function displayQuote() {
+            quoteContainer.style.opacity = 0;
+            setTimeout(() => {
+                quoteContainer.textContent = quotes[currentQuoteIndex];
+                quoteContainer.style.opacity = 1;
+                currentQuoteIndex = (currentQuoteIndex + 1) % quotes.length;
+                quoteContainer.style.maxWidth = `${header.offsetWidth}px`; // Dynamically adjust max-width to match header
+            }, 200);
+        }
+
+        displayQuote();
+        setInterval(displayQuote, 10000);
+
+        (function () {
+            var authButtons = document.getElementById("authButtons");
+            function updateAuthUI() {
+                getSupabase().auth.getSession().then(function (r) {
+                    var session = r.data.session;
+                    authButtons.style.display = "flex";
+                    authButtons.innerHTML = "";
+                    if (session) {
+                        var a1 = document.createElement("a");
+                        a1.href = "teams.html";
+                        a1.className = "btn";
+                        a1.textContent = "Meine Teams";
+                        var a2 = document.createElement("a");
+                        a2.href = "#";
+                        a2.className = "btn";
+                        a2.textContent = "Abmelden";
+                        a2.onclick = function (e) { e.preventDefault(); getSupabase().auth.signOut(); updateAuthUI(); };
+                        authButtons.appendChild(a1);
+                        authButtons.appendChild(a2);
+                    } else {
+                        var a = document.createElement("a");
+                        a.href = "login.html";
+                        a.className = "btn";
+                        a.textContent = "Anmelden";
+                        authButtons.appendChild(a);
+                    }
+                });
+            }
+            getSupabase().auth.onAuthStateChange(function () { updateAuthUI(); });
+            updateAuthUI();
+        })();
+    </script>
+</body>
+</html>
