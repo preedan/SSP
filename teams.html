@@ -160,33 +160,11 @@
                 }
                 createBtn.disabled = true;
                 hideMessage();
-                ensureProfile().then(function (profile) {
-                    return getSupabase().auth.getSession().then(function (sessionRes) {
-                        var session = sessionRes.data.session;
-                        if (!session) {
-                            showMessage("Nicht angemeldet. Bitte erneut anmelden.", "error");
-                            return Promise.reject(new Error("Keine Session"));
-                        }
-                        var uid = session.user.id;
-                        return getSupabase().from("teams").insert({
-                            name: teamName,
-                            created_by: uid
-                        }).select("id").single().then(function (teamRes) {
-                        if (teamRes.error) throw teamRes.error;
-                        var teamId = teamRes.data.id;
-                        return getSupabase().from("team_members").insert({
-                            team_id: teamId,
-                            user_id: uid
-                        }).then(function (tmRes) {
-                            if (tmRes.error) throw tmRes.error;
-                            return getSupabase().from("players").insert({
-                                team_id: teamId,
-                                user_id: uid,
-                                name: profile.display_name
-                            });
-                        });
-                    });
-                    });
+                ensureProfile().then(function () {
+                    return getSupabase().rpc("create_team", { team_name: teamName });
+                }).then(function (rpcRes) {
+                    if (rpcRes.error) throw rpcRes.error;
+                    return rpcRes;
                 }).then(function () {
                     showMessage("Team \"" + teamName + "\" wurde erstellt.", "info");
                     teamNameInput.value = "";
