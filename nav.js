@@ -31,7 +31,7 @@
             left += " | " + link("teams.html", "Meine Teams", "teams");
         }
         var right = session
-            ? link("profil.html", "Profil", null) + " | <button type=\"button\" class=\"app-nav-link app-nav-btn\" id=\"app-nav-signout\">Abmelden</button>"
+            ? "<button type=\"button\" class=\"app-nav-link app-nav-btn\" id=\"app-nav-signout\">Abmelden</button>"
             : link("login.html", "Anmelden", null);
         navEl.innerHTML = "<div class=\"app-nav-inner\"><div class=\"app-nav-left\">" + left + "</div><div class=\"app-nav-right\">" + right + "</div></div>";
 

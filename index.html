@@ -135,13 +135,7 @@
                         a1.href = "teams.html";
                         a1.className = "btn";
                         a1.textContent = "Meine Teams";
-                        var a2 = document.createElement("a");
-                        a2.href = "#";
-                        a2.className = "btn";
-                        a2.textContent = "Abmelden";
-                        a2.onclick = function (e) { e.preventDefault(); getSupabase().auth.signOut(); updateAuthUI(); };
                         authButtons.appendChild(a1);
-                        authButtons.appendChild(a2);
                     } else {
                         var a = document.createElement("a");
                         a.href = "login.html";
