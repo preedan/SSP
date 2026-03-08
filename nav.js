@@ -1,0 +1,64 @@
+/**
+ * Gemeinsame Mini-Navigation (Schritt 1).
+ * Einbinden: <div id="app-nav"></div> + <script src="nav.js"></script> (nach supabase-config.js)
+ */
+(function () {
+    var navEl = document.getElementById("app-nav");
+    if (!navEl) return;
+
+    function getCurrentPage() {
+        var path = window.location.pathname || "";
+        var file = path.split("/").pop() || path;
+        if (file === "" || file === "index.html" || path.endsWith("/")) return "start";
+        if (path.indexOf("uebersicht") !== -1) return "uebersicht";
+        if (path.indexOf("ermitteln") !== -1) return "ermitteln";
+        if (path.indexOf("teams.html") !== -1 && path.indexOf("team-beitreten") === -1) return "teams";
+        return null;
+    }
+
+    function link(href, label, pageKey) {
+        var current = getCurrentPage();
+        var cls = "app-nav-link" + (current === pageKey ? " app-nav-current" : "");
+        return "<a href=\"" + href + "\" class=\"" + cls + "\">" + label + "</a>";
+    }
+
+    function render(session) {
+        var left = link("index.html", "Start", "start") +
+            " | " + link("uebersicht.html", "Übersicht", "uebersicht") +
+            " | " + link("ermitteln.html", "Ermitteln", "ermitteln");
+        if (session) {
+            left += " | " + link("teams.html", "Meine Teams", "teams");
+        }
+        var right = session
+            ? link("profil.html", "Profil", null) + " | <button type=\"button\" class=\"app-nav-link app-nav-btn\" id=\"app-nav-signout\">Abmelden</button>"
+            : link("login.html", "Anmelden", null);
+        navEl.innerHTML = "<div class=\"app-nav-inner\"><div class=\"app-nav-left\">" + left + "</div><div class=\"app-nav-right\">" + right + "</div></div>";
+
+        var signOutBtn = document.getElementById("app-nav-signout");
+        if (signOutBtn && typeof getSupabase === "function") {
+            signOutBtn.addEventListener("click", function () {
+                getSupabase().auth.signOut();
+            });
+        }
+    }
+
+    var style = document.createElement("style");
+    style.textContent = [
+        ".app-nav { font-family: 'Baloo 2', cursive; background: #267bb5; color: #fff; padding: 10px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }",
+        ".app-nav-inner { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }",
+        ".app-nav-left, .app-nav-right { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }",
+        ".app-nav-link { color: #fff; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-size: 0.95em; }",
+        ".app-nav-link:hover { background: rgba(255,255,255,0.2); }",
+        ".app-nav-link.app-nav-current { background: rgba(255,255,255,0.3); font-weight: 700; }",
+        ".app-nav-btn { background: none; border: none; color: inherit; cursor: pointer; font-family: inherit; }",
+        ".app-nav-btn:hover { background: rgba(255,255,255,0.2); }"
+    ].join("\n");
+    document.head.appendChild(style);
+
+    if (typeof getSupabase !== "function") {
+        render(null);
+        return;
+    }
+    getSupabase().auth.getSession().then(function (r) { render(r.data.session); });
+    getSupabase().auth.onAuthStateChange(function (e, s) { render(s); });
+})();

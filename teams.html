@@ -32,7 +32,7 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-link">Zurück zur Startseite</a>
+    <div id="app-nav"></div>
     <h1>Meine Teams</h1>
     <div id="message" class="message" style="display:none;"></div>
     <div class="card">
@@ -46,6 +46,7 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
+    <script src="nav.js"></script>
     <script>
         (function () {
             var messageEl = document.getElementById("message");
