@@ -49,13 +49,14 @@
         "#app-nav.app-nav { font-family: 'Baloo 2', cursive; background: #267bb5; color: #fff; padding: 10px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }",
         "#app-nav.app-nav .app-nav-link { color: #fff; }",
         "#app-nav.app-nav .app-nav-btn { color: #fff; }",
-        "#app-nav .app-nav-inner { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }",
-        "#app-nav .app-nav-left, #app-nav .app-nav-right { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }",
-        "#app-nav .app-nav-link { color: #fff; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-size: 0.95em; }",
+        "#app-nav .app-nav-inner { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }",
+        "#app-nav .app-nav-left, #app-nav .app-nav-right { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }",
+        "#app-nav .app-nav-link { color: #fff; text-decoration: none; padding: 10px 12px; min-height: 44px; box-sizing: border-box; display: inline-flex; align-items: center; border-radius: 6px; font-size: 1em; }",
         "#app-nav .app-nav-link:hover { background: rgba(255,255,255,0.2); }",
         "#app-nav .app-nav-link.app-nav-current { background: rgba(255,255,255,0.3); font-weight: 700; }",
-        "#app-nav .app-nav-btn { background: none; border: none; color: inherit; cursor: pointer; font-family: inherit; font-size: 0.95em; }",
-        "#app-nav .app-nav-btn:hover { background: rgba(255,255,255,0.2); }"
+        "#app-nav .app-nav-btn { background: none; border: none; color: inherit; cursor: pointer; font-family: inherit; font-size: 1em; padding: 10px 12px; min-height: 44px; box-sizing: border-box; border-radius: 6px; }",
+        "#app-nav .app-nav-btn:hover { background: rgba(255,255,255,0.2); }",
+        "@media (max-width: 600px) { #app-nav .app-nav-left { flex-direction: column; align-items: flex-start; } #app-nav .app-nav-inner { gap: 12px; } }"
     ].join("\n");
     document.head.appendChild(style);
 

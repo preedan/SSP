@@ -14,13 +14,19 @@
         .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 12px; }
         .filter-group { display: flex; flex-direction: column; gap: 4px; }
         .filter-group label { font-size: 0.9em; color: #555; }
-        .filter-group select, .filter-group input { padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; font-size: 1em; min-width: 140px; }
+        .filter-group select, .filter-group input { padding: 10px 12px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; font-size: 16px; min-width: 140px; min-height: 44px; box-sizing: border-box; }
         button { padding: 8px 16px; background: #267bb5; color: #fff; border: none; border-radius: 5px; font-family: inherit; cursor: pointer; }
         button:hover { background: #1a5d8b; }
         .summary { font-size: 1.1em; margin-bottom: 16px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #eee; }
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; min-width: 200px; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #eee; }
         th { background: #f5f5f5; font-weight: 700; }
+        @media (max-width: 480px) {
+            .filters { flex-direction: column; align-items: stretch; }
+            .filter-group select, .filter-group input { min-width: 0; width: 100%; }
+            #applyBtn { width: 100%; min-height: 44px; }
+        }
         .message { padding: 12px; border-radius: 5px; margin-bottom: 12px; }
         .message.loading { background: #e7f3ff; color: #333; }
         .message.error { background: #fee; color: #c00; }
@@ -62,9 +68,9 @@
         <h2>Zusammenfassung</h2>
         <p class="summary" id="summaryText"></p>
         <h2>Siege pro Spieler</h2>
-        <div id="winsTableWrap"></div>
+        <div id="winsTableWrap" class="table-wrap"></div>
         <h2 style="margin-top:20px;">Runden pro Variante</h2>
-        <div id="variantTableWrap"></div>
+        <div id="variantTableWrap" class="table-wrap"></div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
