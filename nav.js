@@ -42,8 +42,6 @@
         email = (session && session.user && session.user.email) ? session.user.email : (email || "");
 
         var left = link("index.html", "Start", "start") +
-            " | " + link("uebersicht.html", "Übersicht", "uebersicht") +
-            " | " + link("ermitteln.html", "Ermitteln", "ermitteln") +
             " | " + link("statistik.html", "Statistik", "statistik");
 
         var initial = getInitial(displayName, email);
@@ -87,9 +85,9 @@
     style.textContent = [
         "#app-nav.app-nav { font-family: 'Baloo 2', cursive; background: #267bb5; color: #fff; padding: 10px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }",
         "#app-nav.app-nav .app-nav-link { color: #fff; }",
-        "#app-nav .app-nav-inner { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }",
-        "#app-nav .app-nav-left, #app-nav .app-nav-right { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }",
-        "#app-nav .app-nav-link { color: #fff; text-decoration: none; padding: 10px 12px; min-height: 44px; box-sizing: border-box; display: inline-flex; align-items: center; border-radius: 6px; font-size: 1em; }",
+        "#app-nav .app-nav-inner { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 8px; }",
+        "#app-nav .app-nav-left, #app-nav .app-nav-right { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; }",
+        "#app-nav .app-nav-link { color: #fff; text-decoration: none; padding: 10px 12px; min-height: 44px; box-sizing: border-box; display: inline-flex; align-items: center; border-radius: 6px; font-size: 1em; white-space: nowrap; }",
         "#app-nav .app-nav-link:hover { background: rgba(255,255,255,0.2); }",
         "#app-nav .app-nav-link.app-nav-current { background: rgba(255,255,255,0.3); font-weight: 700; }",
         ".app-nav-profile-wrap { position: relative; }",
@@ -106,7 +104,7 @@
         ".app-nav-dropdown-item:hover { background: #f0f4f8; }",
         ".app-nav-dropdown-btn { color: #c33; }",
         ".app-nav-dropdown-btn:hover { background: #fee; }",
-        "@media (max-width: 600px) { #app-nav .app-nav-left { flex-direction: column; align-items: flex-start; } #app-nav .app-nav-inner { gap: 12px; } .app-nav-dropdown { right: 0; left: auto; } }"
+        "@media (max-width: 400px) { #app-nav.app-nav { padding: 8px 12px; } #app-nav .app-nav-link { padding: 8px 10px; font-size: 0.95em; } .app-nav-profile-circle { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 1.1em; } }"
     ].join("\n");
     document.head.appendChild(style);
 
