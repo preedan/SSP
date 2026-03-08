@@ -20,9 +20,14 @@
         .message.info { background: #e7f3ff; color: #333; }
         #teamList { margin-top: 16px; }
         #teamList.empty { color: #666; }
-        .team-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .team-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eee; flex-wrap: wrap; }
         .team-item:last-child { border-bottom: none; }
-        .copy-invite-btn { padding: 6px 10px; font-size: 0.9em; flex-shrink: 0; }
+        .team-item-info { flex: 1; min-width: 120px; }
+        .team-item-meta { font-size: 0.9em; color: #666; margin-top: 2px; }
+        .team-item-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+        .copy-invite-btn { padding: 6px 10px; font-size: 0.9em; }
+        .btn-delete { background: #c33; padding: 6px 10px; font-size: 0.9em; }
+        .btn-delete:hover { background: #a22; }
         .team-list-ul { margin: 0; padding-left: 20px; list-style: none; padding-left: 0; }
     </style>
 </head>
@@ -99,7 +104,7 @@
                             }
                             return getSupabase()
                                 .from("teams")
-                                .select("id, name, created_at")
+                                .select("id, name, created_at, created_by")
                                 .in("id", ids)
                                 .order("created_at", { ascending: false })
                                 .then(function (teamsRes) {
@@ -111,39 +116,90 @@
                                         return;
                                     }
                                     var baseUrl = window.location.origin + window.location.pathname.replace(/[^/]+$/, "");
-                                    teamListContent.innerHTML = "<ul class='team-list-ul'>" +
-                                        list.map(function (t) {
-                                            var inviteUrl = baseUrl + "team-beitreten.html?team=" + encodeURIComponent(t.id);
-                                            return "<li class='team-item'><strong>" + (t.name || "Unbenannt") + "</strong>" +
-                                                "<button type='button' class='btn copy-invite-btn' data-invite-url='" + inviteUrl.replace(/'/g, "&#39;") + "'>Einladungslink kopieren</button></li>";
-                                        }).join("") +
-                                        "</ul>";
-                                    teamListContent.querySelectorAll(".copy-invite-btn").forEach(function (btn) {
-                                        btn.addEventListener("click", function () {
-                                            var url = this.getAttribute("data-invite-url");
-                                            if (navigator.clipboard && navigator.clipboard.writeText) {
-                                                navigator.clipboard.writeText(url).then(function () {
-                                                    showMessage("Einladungslink wurde in die Zwischenablage kopiert.", "info");
-                                                }).catch(function () { fallbackCopy(url); });
-                                            } else {
-                                                fallbackCopy(url);
-                                            }
+                                    var ownerIds = [];
+                                    list.forEach(function (t) {
+                                        if (t.created_by && ownerIds.indexOf(t.created_by) === -1) ownerIds.push(t.created_by);
+                                    });
+                                    if (ownerIds.length === 0) {
+                                        renderTeamList(list, {}, user.id, baseUrl);
+                                        return;
+                                    }
+                                    return getSupabase()
+                                        .from("profiles")
+                                        .select("user_id, display_name")
+                                        .in("user_id", ownerIds)
+                                        .then(function (profRes) {
+                                            if (profRes.error) throw profRes.error;
+                                            var ownerNames = {};
+                                            (profRes.data || []).forEach(function (p) {
+                                                ownerNames[p.user_id] = p.display_name || "Unbekannt";
+                                            });
+                                            renderTeamList(list, ownerNames, user.id, baseUrl);
+                                        });
+                                });
+                            function renderTeamList(list, ownerNames, currentUserId, baseUrl) {
+                                teamListContent.innerHTML = "<ul class='team-list-ul'>" +
+                                    list.map(function (t) {
+                                        var inviteUrl = baseUrl + "team-beitreten.html?team=" + encodeURIComponent(t.id);
+                                        var ownerName = ownerNames[t.created_by] || "Unbekannt";
+                                        var isOwner = t.created_by === currentUserId;
+                                        var deleteBtn = isOwner
+                                            ? "<button type='button' class='btn btn-delete delete-team-btn' data-team-id='" + t.id + "' data-team-name='" + (t.name || "").replace(/'/g, "&#39;").replace(/"/g, "&quot;") + "'>Team löschen</button>"
+                                            : "";
+                                        return "<li class='team-item'><div class='team-item-info'><strong>" + (t.name || "Unbenannt") + "</strong>" +
+                                            "<div class='team-item-meta'>Owner: " + escapeHtml(ownerName) + "</div></div>" +
+                                            "<div class='team-item-actions'>" +
+                                            "<button type='button' class='btn copy-invite-btn' data-invite-url='" + inviteUrl.replace(/'/g, "&#39;") + "'>Einladungslink kopieren</button>" +
+                                            deleteBtn + "</div></li>";
+                                    }).join("") + "</ul>";
+                                teamListContent.querySelectorAll(".copy-invite-btn").forEach(function (btn) {
+                                    btn.addEventListener("click", function () {
+                                        var url = this.getAttribute("data-invite-url");
+                                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                                            navigator.clipboard.writeText(url).then(function () {
+                                                showMessage("Einladungslink wurde in die Zwischenablage kopiert.", "info");
+                                            }).catch(function () { fallbackCopy(url); });
+                                        } else {
+                                            fallbackCopy(url);
+                                        }
+                                    });
+                                });
+                                teamListContent.querySelectorAll(".delete-team-btn").forEach(function (btn) {
+                                    btn.addEventListener("click", function () {
+                                        var teamId = this.getAttribute("data-team-id");
+                                        var teamName = this.getAttribute("data-team-name") || "dieses Team";
+                                        if (!confirm("Team \"" + teamName + "\" wirklich unwiderruflich löschen? Alle Mitglieder und Spielstände gehen verloren.")) return;
+                                        var el = this;
+                                        el.disabled = true;
+                                        getSupabase().rpc("delete_team", { team_id: teamId }).then(function (r) {
+                                            if (r.error) throw r.error;
+                                            showMessage("Team wurde gelöscht.", "info");
+                                            loadTeams();
+                                        }).catch(function (err) {
+                                            showMessage(err.message || "Löschen fehlgeschlagen.", "error");
+                                            el.disabled = false;
                                         });
                                     });
-                                    function fallbackCopy(url) {
-                                        var ta = document.createElement("textarea");
-                                        ta.value = url;
-                                        document.body.appendChild(ta);
-                                        ta.select();
-                                        try {
-                                            document.execCommand("copy");
-                                            showMessage("Einladungslink wurde in die Zwischenablage kopiert.", "info");
-                                        } catch (e) {
-                                            showMessage("Link kopieren fehlgeschlagen. Bitte manuell kopieren: " + url, "error");
-                                        }
-                                        document.body.removeChild(ta);
-                                    }
                                 });
+                            }
+                            function escapeHtml(s) {
+                                var div = document.createElement("div");
+                                div.textContent = s;
+                                return div.innerHTML;
+                            }
+                            function fallbackCopy(url) {
+                                var ta = document.createElement("textarea");
+                                ta.value = url;
+                                document.body.appendChild(ta);
+                                ta.select();
+                                try {
+                                    document.execCommand("copy");
+                                    showMessage("Einladungslink wurde in die Zwischenablage kopiert.", "info");
+                                } catch (e) {
+                                    showMessage("Link kopieren fehlgeschlagen. Bitte manuell kopieren: " + url, "error");
+                                }
+                                document.body.removeChild(ta);
+                            }
                         });
                 }).catch(function (err) {
                     if (err.message === "Nicht angemeldet" || err.message === "Profil fehlt") return;

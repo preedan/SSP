@@ -36,3 +36,37 @@ $$;
 -- Ausführung erlauben (anon = mit JWT, authenticated falls verwendet)
 GRANT EXECUTE ON FUNCTION public.create_team(text) TO anon;
 GRANT EXECUTE ON FUNCTION public.create_team(text) TO authenticated;
+
+-- ============================================================
+-- RPC: delete_team – Nur Team-Owner darf löschen
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.delete_team(team_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  uid uuid;
+  owner_id uuid;
+BEGIN
+  uid := COALESCE((auth.jwt() ->> 'sub')::uuid, auth.uid());
+  IF uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  SELECT created_by INTO owner_id FROM public.teams WHERE id = team_id;
+  IF owner_id IS NULL THEN
+    RAISE EXCEPTION 'Team nicht gefunden';
+  END IF;
+  IF owner_id != uid THEN
+    RAISE EXCEPTION 'Nur der Ersteller des Teams darf es löschen';
+  END IF;
+
+  DELETE FROM public.teams WHERE id = team_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.delete_team(uuid) TO anon;
+GRANT EXECUTE ON FUNCTION public.delete_team(uuid) TO authenticated;
