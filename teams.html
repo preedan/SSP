@@ -161,23 +161,26 @@
                 createBtn.disabled = true;
                 hideMessage();
                 ensureProfile().then(function (profile) {
-                    return getSupabase().from("teams").insert({
-                        name: teamName,
-                        created_by: profile.user_id
-                    }).select("id").single().then(function (teamRes) {
+                    return getSupabase().auth.getUser().then(function (authRes) {
+                        var uid = authRes.data.user ? authRes.data.user.id : profile.user_id;
+                        return getSupabase().from("teams").insert({
+                            name: teamName,
+                            created_by: uid
+                        }).select("id").single().then(function (teamRes) {
                         if (teamRes.error) throw teamRes.error;
                         var teamId = teamRes.data.id;
                         return getSupabase().from("team_members").insert({
                             team_id: teamId,
-                            user_id: profile.user_id
+                            user_id: uid
                         }).then(function (tmRes) {
                             if (tmRes.error) throw tmRes.error;
                             return getSupabase().from("players").insert({
                                 team_id: teamId,
-                                user_id: profile.user_id,
+                                user_id: uid,
                                 name: profile.display_name
                             });
                         });
+                    });
                     });
                 }).then(function () {
                     showMessage("Team \"" + teamName + "\" wurde erstellt.", "info");
