@@ -14,6 +14,7 @@
         if (path.indexOf("uebersicht") !== -1) return "uebersicht";
         if (path.indexOf("ermitteln") !== -1) return "ermitteln";
         if (path.indexOf("teams.html") !== -1 && path.indexOf("team-beitreten") === -1) return "teams";
+        if (path.indexOf("statistik") !== -1) return "statistik";
         return null;
     }
 
@@ -28,7 +29,7 @@
             " | " + link("uebersicht.html", "Übersicht", "uebersicht") +
             " | " + link("ermitteln.html", "Ermitteln", "ermitteln");
         if (session) {
-            left += " | " + link("teams.html", "Meine Teams", "teams");
+            left += " | " + link("teams.html", "Meine Teams", "teams") + " | " + link("statistik.html", "Statistik", "statistik");
         }
         var right = session
             ? "<button type=\"button\" class=\"app-nav-link app-nav-btn\" id=\"app-nav-signout\">Abmelden</button>"

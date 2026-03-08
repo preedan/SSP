@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistik – Schere, Stein, Papier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Baloo 2', cursive; background: #f0f0f0; margin: 0; padding: 20px; }
+        #app-nav { margin: -20px -20px 0 -20px; }
+        h1 { margin-top: 0; }
+        .card { background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+        .card h2 { margin: 0 0 12px 0; font-size: 1.2em; }
+        .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 12px; }
+        .filter-group { display: flex; flex-direction: column; gap: 4px; }
+        .filter-group label { font-size: 0.9em; color: #555; }
+        .filter-group select, .filter-group input { padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; font-size: 1em; min-width: 140px; }
+        button { padding: 8px 16px; background: #267bb5; color: #fff; border: none; border-radius: 5px; font-family: inherit; cursor: pointer; }
+        button:hover { background: #1a5d8b; }
+        .summary { font-size: 1.1em; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #eee; }
+        th { background: #f5f5f5; font-weight: 700; }
+        .message { padding: 12px; border-radius: 5px; margin-bottom: 12px; }
+        .message.loading { background: #e7f3ff; color: #333; }
+        .message.error { background: #fee; color: #c00; }
+        .message.empty { background: #f9f9f9; color: #666; }
+        .pct { color: #555; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div id="app-nav"></div>
+    <h1>Statistik & Auswertung</h1>
+    <div id="message" class="message" style="display:none;"></div>
+    <div class="card">
+        <h2>Filter</h2>
+        <div class="filters">
+            <div class="filter-group">
+                <label>Team</label>
+                <select id="filterTeam">
+                    <option value="">Alle meine Teams</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Variante</label>
+                <select id="filterVariant">
+                    <option value="">Alle Varianten</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Von (Datum)</label>
+                <input type="date" id="filterFrom">
+            </div>
+            <div class="filter-group">
+                <label>Bis (Datum)</label>
+                <input type="date" id="filterTo">
+            </div>
+            <button type="button" id="applyBtn">Anwenden</button>
+        </div>
+    </div>
+    <div class="card" id="resultCard" style="display:none;">
+        <h2>Zusammenfassung</h2>
+        <p class="summary" id="summaryText"></p>
+        <h2>Siege pro Spieler</h2>
+        <div id="winsTableWrap"></div>
+        <h2 style="margin-top:20px;">Runden pro Variante</h2>
+        <div id="variantTableWrap"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        (function () {
+            var messageEl = document.getElementById("message");
+            var resultCard = document.getElementById("resultCard");
+            var summaryText = document.getElementById("summaryText");
+            var winsTableWrap = document.getElementById("winsTableWrap");
+            var variantTableWrap = document.getElementById("variantTableWrap");
+            var filterTeam = document.getElementById("filterTeam");
+            var filterVariant = document.getElementById("filterVariant");
+            var filterFrom = document.getElementById("filterFrom");
+            var filterTo = document.getElementById("filterTo");
+            var applyBtn = document.getElementById("applyBtn");
+
+            var myTeamIds = [];
+            var myTeams = [];
+            var variants = [];
+
+            function showMessage(text, type) {
+                messageEl.textContent = text;
+                messageEl.className = "message " + (type || "info");
+                messageEl.style.display = "block";
+            }
+
+            function loadFilters() {
+                return getSupabase().auth.getUser().then(function (r) {
+                    if (!r.data.user) {
+                        window.location.href = "login.html?redirect=" + encodeURIComponent("statistik.html");
+                        return;
+                    }
+                    var userId = r.data.user.id;
+                    return Promise.all([
+                        getSupabase().from("team_members").select("team_id, teams(id, name)").eq("user_id", userId),
+                        getSupabase().from("variants").select("id, name").eq("is_active", true).order("name")
+                    ]).then(function (results) {
+                        var tmRes = results[0];
+                        var vRes = results[1];
+                        if (tmRes.error) throw tmRes.error;
+                        if (vRes.error) throw vRes.error;
+                        myTeams = (tmRes.data || []).map(function (row) {
+                            var t = row.teams;
+                            return t ? { id: t.id, name: t.name } : null;
+                        }).filter(Boolean);
+                        myTeamIds = myTeams.map(function (t) { return t.id; });
+                        variants = vRes.data || [];
+                        filterTeam.innerHTML = "<option value=''>Alle meine Teams</option>" +
+                            myTeams.map(function (t) { return "<option value=\"" + t.id + "\">" + (t.name || "").replace(/</g, "&lt;") + "</option>"; }).join("");
+                        filterVariant.innerHTML = "<option value=''>Alle Varianten</option>" +
+                            variants.map(function (v) { return "<option value=\"" + v.id + "\">" + (v.name || "").replace(/</g, "&lt;") + "</option>"; }).join("");
+                    });
+                });
+            }
+
+            function loadStats() {
+                var teamId = filterTeam.value || null;
+                var variantId = filterVariant.value || null;
+                var fromDate = filterFrom.value || null;
+                var toDate = filterTo.value || null;
+
+                showMessage("Lade …", "loading");
+                resultCard.style.display = "none";
+
+                var sessionTeamIds = teamId ? [teamId] : myTeamIds;
+                if (sessionTeamIds.length === 0) {
+                    showMessage("Du bist in keinem Team. Trete einem Team bei oder erstelle eines.", "empty");
+                    return;
+                }
+
+                getSupabase().from("sessions").select("id, team_id").in("team_id", sessionTeamIds).then(function (sRes) {
+                    if (sRes.error) throw sRes.error;
+                    var sessionIds = (sRes.data || []).map(function (s) { return s.id; });
+                    if (sessionIds.length === 0) {
+                        showMessage("Keine Sessions gefunden. Spiele ein paar Runden, dann erscheinen hier Statistiken.", "empty");
+                        return;
+                    }
+                    return getSupabase().from("rounds").select("id, session_id, variant_id, winner_player_id, played_at, winner:winner_player_id(name), variant:variant_id(name)").in("session_id", sessionIds);
+                }).then(function (rRes) {
+                    if (rRes.error) throw rRes.error;
+                    var rounds = rRes.data || [];
+
+                    if (variantId) rounds = rounds.filter(function (r) { return r.variant_id === variantId; });
+                    if (fromDate) rounds = rounds.filter(function (r) { return r.played_at && r.played_at.slice(0, 10) >= fromDate; });
+                    if (toDate) rounds = rounds.filter(function (r) { return r.played_at && r.played_at.slice(0, 10) <= toDate; });
+
+                    var total = rounds.length;
+                    var winsByPlayer = {};
+                    var countByVariant = {};
+                    rounds.forEach(function (r) {
+                        var name = (r.winner && r.winner.name) ? r.winner.name : "Unbekannt";
+                        if (!winsByPlayer[name]) winsByPlayer[name] = 0;
+                        winsByPlayer[name]++;
+                        var vname = (r.variant && r.variant.name) ? r.variant.name : "Unbekannt";
+                        if (!countByVariant[vname]) countByVariant[vname] = 0;
+                        countByVariant[vname]++;
+                    });
+
+                    var winRows = Object.keys(winsByPlayer).sort(function (a, b) { return winsByPlayer[b] - winsByPlayer[a]; });
+                    var variantRows = Object.keys(countByVariant).sort(function (a, b) { return countByVariant[b] - countByVariant[a]; });
+
+                    summaryText.textContent = total + " Runde(n) im gewählten Zeitraum.";
+                    winsTableWrap.innerHTML = total === 0 ? "<p class=\"message empty\">Keine Runden.</p>" : "<table><thead><tr><th>Spieler</th><th>Siege</th><th>Anteil</th></tr></thead><tbody>" +
+                        winRows.map(function (name) {
+                            var n = winsByPlayer[name];
+                            var pct = total ? (Math.round((n / total) * 100)) : 0;
+                            return "<tr><td>" + name.replace(/</g, "&lt;") + "</td><td>" + n + "</td><td><span class=\"pct\">" + pct + " %</span></td></tr>";
+                        }).join("") + "</tbody></table>";
+                    variantTableWrap.innerHTML = total === 0 ? "" : "<table><thead><tr><th>Variante</th><th>Anzahl Runden</th></tr></thead><tbody>" +
+                        variantRows.map(function (name) {
+                            return "<tr><td>" + name.replace(/</g, "&lt;") + "</td><td>" + countByVariant[name] + "</td></tr>";
+                        }).join("") + "</tbody></table>";
+
+                    resultCard.style.display = "block";
+                    messageEl.style.display = "none";
+                }).catch(function (err) {
+                    showMessage(err.message || "Statistik konnte nicht geladen werden.", "error");
+                });
+            }
+
+            applyBtn.addEventListener("click", loadStats);
+            loadFilters().then(function () {
+                loadStats();
+            }).catch(function (err) {
+                showMessage(err.message || "Filter konnten nicht geladen werden.", "error");
+            });
+        })();
+    </script>
+</body>
+</html>
