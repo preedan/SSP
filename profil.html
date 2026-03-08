@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dein Name – Schere, Stein, Papier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body, html { height: 100%; margin: 0; display: flex; justify-content: center; align-items: center; font-family: 'Baloo 2', cursive; background: #f0f0f0; }
+        .container { padding: 24px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 360px; width: 100%; }
+        h1 { font-size: 1.3em; margin: 0 0 8px 0; }
+        p { color: #555; font-size: 0.95em; margin: 0 0 16px 0; }
+        input { width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; font-size: 1em; }
+        button { width: 100%; padding: 10px 15px; background: #267bb5; color: white; border: none; border-radius: 5px; font-family: inherit; font-size: 1em; cursor: pointer; }
+        button:hover { background: #1a5d8b; }
+        .message { margin-top: 12px; font-size: 0.9em; }
+        .message.error { color: #c00; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wie sollen wir dich nennen?</h1>
+        <p>Jeder braucht einen Anzeigenamen (z. B. in Teams und Statistiken).</p>
+        <form id="profileForm">
+            <input type="text" id="displayName" placeholder="Dein Name" maxlength="50" required autocomplete="name">
+            <button type="submit" id="submitBtn">Speichern</button>
+        </form>
+        <div id="message" class="message"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script>
+        (function () {
+            var form = document.getElementById("profileForm");
+            var messageEl = document.getElementById("message");
+            var submitBtn = document.getElementById("submitBtn");
+
+            function redirectBack() {
+                var params = new URLSearchParams(window.location.search);
+                var r = params.get("redirect");
+                window.location.href = r && /^[a-z_.]+\.html$/i.test(r) ? r : "index.html";
+            }
+
+            getSupabase().auth.getSession().then(function (r) {
+                if (!r.data.session) {
+                    window.location.href = "login.html?redirect=" + encodeURIComponent("profil.html" + window.location.search);
+                    return;
+                }
+                getSupabase().from("profiles").select("display_name").eq("user_id", r.data.session.user.id).maybeSingle()
+                    .then(function (res) {
+                        if (res.data && res.data.display_name) {
+                            redirectBack();
+                        }
+                    });
+            });
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var name = document.getElementById("displayName").value.trim();
+                if (!name) {
+                    messageEl.textContent = "Bitte einen Namen eingeben.";
+                    messageEl.className = "message error";
+                    return;
+                }
+                submitBtn.disabled = true;
+                messageEl.textContent = "";
+                getSupabase().auth.getUser().then(function (r) {
+                    var uid = r.data.user.id;
+                    return getSupabase().from("profiles").upsert(
+                        { user_id: uid, display_name: name },
+                        { onConflict: "user_id" }
+                    );
+                }).then(function (res) {
+                    if (res.error) throw res.error;
+                    redirectBack();
+                }).catch(function (err) {
+                    messageEl.textContent = err.message || "Speichern fehlgeschlagen.";
+                    messageEl.className = "message error";
+                }).finally(function () {
+                    submitBtn.disabled = false;
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

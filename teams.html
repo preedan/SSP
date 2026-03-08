@@ -53,38 +53,38 @@
                 messageEl.style.display = "none";
             }
 
-            function ensurePlayer() {
+            /** Profil mit display_name (Pflicht). Fehlt es, Redirect zu profil.html. */
+            function ensureProfile() {
                 return getSupabase().auth.getUser().then(function (r) {
                     var user = r.data.user;
                     if (!user) return Promise.reject(new Error("Nicht angemeldet"));
                     return getSupabase()
-                        .from("players")
-                        .select("id, display_name")
+                        .from("profiles")
+                        .select("display_name")
                         .eq("user_id", user.id)
                         .maybeSingle()
                         .then(function (res) {
                             if (res.error) return Promise.reject(res.error);
-                            if (res.data) return res.data;
-                            var name = (user.email && user.email.split("@")[0]) || "Spieler";
-                            return getSupabase()
-                                .from("players")
-                                .insert({ user_id: user.id, display_name: name })
-                                .select("id, display_name")
-                                .single()
-                                .then(function (ins) {
-                                    if (ins.error) return Promise.reject(ins.error);
-                                    return ins.data;
-                                });
+                            if (!res.data || !res.data.display_name) {
+                                window.location.href = "profil.html?redirect=teams.html";
+                                return Promise.reject(new Error("Profil fehlt"));
+                            }
+                            return { user_id: user.id, display_name: res.data.display_name };
                         });
                 });
             }
 
             function loadTeams() {
-                ensurePlayer().then(function (player) {
+                getSupabase().auth.getUser().then(function (r) {
+                    var user = r.data.user;
+                    if (!user) {
+                        window.location.href = "login.html?redirect=" + encodeURIComponent("teams.html");
+                        return;
+                    }
                     return getSupabase()
                         .from("team_members")
                         .select("team_id")
-                        .eq("player_id", player.id)
+                        .eq("user_id", user.id)
                         .then(function (res) {
                             if (res.error) throw res.error;
                             var ids = (res.data || []).map(function (r) { return r.team_id; });
@@ -112,40 +112,47 @@
                                 });
                         });
                 }).catch(function (err) {
-                    if (err.message === "Nicht angemeldet") {
-                        window.location.href = "login.html?redirect=" + encodeURIComponent("teams.html");
-                        return;
-                    }
+                    if (err.message === "Nicht angemeldet" || err.message === "Profil fehlt") return;
                     teamListContent.textContent = "Fehler: " + (err.message || "Teams konnten nicht geladen werden.");
                     teamListContent.parentElement.classList.add("empty");
                 });
             }
 
             createBtn.addEventListener("click", function () {
-                var name = teamNameInput.value.trim();
-                if (!name) {
+                var teamName = teamNameInput.value.trim();
+                if (!teamName) {
                     showMessage("Bitte einen Teamnamen eingeben.", "error");
                     return;
                 }
                 createBtn.disabled = true;
                 hideMessage();
-                ensurePlayer().then(function (player) {
-                    return getSupabase().from("teams").insert({ name: name }).select("id").single()
-                        .then(function (teamRes) {
-                            if (teamRes.error) throw teamRes.error;
-                            return getSupabase().from("team_members").insert({
-                                team_id: teamRes.data.id,
-                                player_id: player.id
-                            });
-                        })
-                        .then(function (tmRes) {
+                ensureProfile().then(function (profile) {
+                    return getSupabase().from("teams").insert({
+                        name: teamName,
+                        created_by: profile.user_id
+                    }).select("id").single().then(function (teamRes) {
+                        if (teamRes.error) throw teamRes.error;
+                        var teamId = teamRes.data.id;
+                        return getSupabase().from("team_members").insert({
+                            team_id: teamId,
+                            user_id: profile.user_id
+                        }).then(function (tmRes) {
                             if (tmRes.error) throw tmRes.error;
-                            showMessage("Team \"" + name + "\" wurde erstellt.", "info");
-                            teamNameInput.value = "";
-                            loadTeams();
+                            return getSupabase().from("players").insert({
+                                team_id: teamId,
+                                user_id: profile.user_id,
+                                name: profile.display_name
+                            });
                         });
+                    });
+                }).then(function () {
+                    showMessage("Team \"" + teamName + "\" wurde erstellt.", "info");
+                    teamNameInput.value = "";
+                    loadTeams();
                 }).catch(function (err) {
-                    showMessage(err.message || "Team konnte nicht erstellt werden.", "error");
+                    if (err.message !== "Profil fehlt") {
+                        showMessage(err.message || "Team konnte nicht erstellt werden.", "error");
+                    }
                 }).finally(function () {
                     createBtn.disabled = false;
                 });
@@ -156,7 +163,9 @@
                     window.location.href = "login.html?redirect=" + encodeURIComponent("teams.html");
                     return;
                 }
-                loadTeams();
+                ensureProfile().then(function () {
+                    loadTeams();
+                }).catch(function () { /* Redirect zu profil oder login */ });
             });
         })();
     </script>

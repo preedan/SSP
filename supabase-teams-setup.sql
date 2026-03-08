@@ -1,75 +1,97 @@
 -- ============================================================
--- SSP: Teams & Auth – Schema und RLS
+-- SSP: Auth, Profiles, Teams – Schema-Ergänzungen & RLS
 -- Im Supabase Dashboard: SQL Editor → New query → einfügen → Run
+-- Voraussetzung: Basis-Schema (variants, teams, team_members, players, sessions, rounds) existiert.
 -- ============================================================
 
--- 1) Spalte user_id in players (Verbindung zu Supabase Auth)
-ALTER TABLE players
-ADD COLUMN IF NOT EXISTS user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE;
+-- 1) PROFILES: Jeder User hat einen Anzeigenamen (Pflicht)
+create table if not exists public.profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  display_name text not null,
+  created_at timestamptz not null default now()
+);
 
-CREATE UNIQUE INDEX IF NOT EXISTS players_user_id_key ON players(user_id);
+alter table public.profiles enable row level security;
 
-COMMENT ON COLUMN players.user_id IS 'Supabase Auth User – ein Nutzer = ein Spieler';
+drop policy if exists "Users can read own profile" on public.profiles;
+create policy "Users can read own profile" on public.profiles
+  for select using (auth.uid() = user_id);
 
--- 2) RLS aktivieren
-ALTER TABLE players ENABLE ROW LEVEL SECURITY;
-ALTER TABLE teams ENABLE ROW LEVEL SECURITY;
-ALTER TABLE team_members ENABLE ROW LEVEL SECURITY;
+drop policy if exists "Users can insert own profile" on public.profiles;
+create policy "Users can insert own profile" on public.profiles
+  for insert with check (auth.uid() = user_id);
 
--- 3) Policies: players (nur eigener Spieler)
-DROP POLICY IF EXISTS "Users can read own player" ON players;
-CREATE POLICY "Users can read own player" ON players
-  FOR SELECT USING (auth.uid() = user_id);
+drop policy if exists "Users can update own profile" on public.profiles;
+create policy "Users can update own profile" on public.profiles
+  for update using (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Users can insert own player" ON players;
-CREATE POLICY "Users can insert own player" ON players
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Users can update own player" ON players;
-CREATE POLICY "Users can update own player" ON players
-  FOR UPDATE USING (auth.uid() = user_id);
+-- 2) PLAYERS: user_id ergänzen (welcher Auth-User ist dieser Spieler im Team)
+alter table public.players
+  add column if not exists user_id uuid references auth.users(id) on delete cascade;
 
--- 4) Policies: team_members (lesen/schreiben nur für eigene Beteiligung bzw. Team-Erstellung)
-DROP POLICY IF EXISTS "Users can read own team_members" ON team_members;
-CREATE POLICY "Users can read own team_members" ON team_members
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM players p
-      WHERE p.id = team_members.player_id AND p.user_id = auth.uid()
+create unique index if not exists players_team_user_key on public.players(team_id, user_id);
+
+comment on column public.players.user_id is 'Auth-User; ein User hat pro Team genau einen Spieler.';
+comment on column public.players.name is 'Anzeigename im Team (z. B. aus profiles.display_name).';
+
+alter table public.players enable row level security;
+
+drop policy if exists "Users can read players in their teams" on public.players;
+create policy "Users can read players in their teams" on public.players
+  for select using (
+    auth.uid() = user_id
+    or exists (
+      select 1 from public.team_members tm
+      where tm.team_id = players.team_id and tm.user_id = auth.uid()
     )
   );
 
-DROP POLICY IF EXISTS "Users can insert own team_members" ON team_members;
-CREATE POLICY "Users can insert own team_members" ON team_members
-  FOR INSERT WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM players p
-      WHERE p.id = team_members.player_id AND p.user_id = auth.uid()
+drop policy if exists "Users can insert own player in team" on public.players;
+create policy "Users can insert own player in team" on public.players
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update own player" on public.players;
+create policy "Users can update own player" on public.players
+  for update using (auth.uid() = user_id);
+
+
+-- 3) TEAM_MEMBERS: Schema nutzt user_id (nicht player_id)
+alter table public.team_members enable row level security;
+
+drop policy if exists "Users can read own team_members" on public.team_members;
+create policy "Users can read own team_members" on public.team_members
+  for select using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert own team_members" on public.team_members;
+create policy "Users can insert own team_members" on public.team_members
+  for insert with check (auth.uid() = user_id);
+
+
+-- 4) TEAMS: created_by setzen; lesen wenn Mitglied
+alter table public.teams enable row level security;
+
+drop policy if exists "Users can read teams they belong to" on public.teams;
+create policy "Users can read teams they belong to" on public.teams
+  for select using (
+    exists (
+      select 1 from public.team_members tm
+      where tm.team_id = teams.id and tm.user_id = auth.uid()
     )
   );
 
--- 5) Policies: teams (lesen nur, wenn man Mitglied ist; erstellen erlauben für angemeldete Nutzer)
-DROP POLICY IF EXISTS "Users can read teams they belong to" ON teams;
-CREATE POLICY "Users can read teams they belong to" ON teams
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM team_members tm
-      JOIN players p ON p.id = tm.player_id AND p.user_id = auth.uid()
-      WHERE tm.team_id = teams.id
-    )
-  );
+drop policy if exists "Authenticated users can create teams" on public.teams;
+create policy "Authenticated users can create teams" on public.teams
+  for insert with check (auth.uid() IS NOT NULL);
 
-DROP POLICY IF EXISTS "Authenticated users can create teams" ON teams;
-CREATE POLICY "Authenticated users can create teams" ON teams
-  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+drop policy if exists "Creator can set created_by" on public.teams;
+-- created_by wird im Insert vom Client gesetzt (auth.uid())
 
--- Optional: teams aktualisieren nur, wenn Mitglied (für später: Team-Name ändern etc.)
-DROP POLICY IF EXISTS "Users can update teams they belong to" ON teams;
-CREATE POLICY "Users can update teams they belong to" ON teams
-  FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM team_members tm
-      JOIN players p ON p.id = tm.player_id AND p.user_id = auth.uid()
-      WHERE tm.team_id = teams.id
+drop policy if exists "Users can update teams they belong to" on public.teams;
+create policy "Users can update teams they belong to" on public.teams
+  for update using (
+    exists (
+      select 1 from public.team_members tm
+      where tm.team_id = teams.id and tm.user_id = auth.uid()
     )
   );
