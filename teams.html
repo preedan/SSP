@@ -30,6 +30,9 @@
         .btn-delete { background: #c33; padding: 6px 10px; font-size: 0.9em; }
         .btn-delete:hover { background: #a22; }
         .team-list-ul { margin: 0; padding-left: 20px; list-style: none; padding-left: 0; }
+        .current-team-badge { display: inline-block; margin-left: 8px; padding: 2px 8px; background: #2a9d2a; color: #fff; border-radius: 4px; font-size: 0.85em; }
+        .btn-current-team { padding: 6px 10px; font-size: 0.9em; background: #2a9d2a; }
+        .btn-current-team:hover { background: #228b22; }
     </style>
 </head>
 <body>
@@ -152,8 +155,19 @@
                                                 });
                                         });
                                 });
+                            function getCurrentTeam() {
+                                try {
+                                    var s = localStorage.getItem("ssp_current_team");
+                                    return s ? JSON.parse(s) : null;
+                                } catch (e) { return null; }
+                            }
+                            function setCurrentTeam(id, name) {
+                                localStorage.setItem("ssp_current_team", JSON.stringify({ id: id, name: name || "" }));
+                            }
                             function renderTeamList(list, ownerNames, currentUserId, baseUrl, membersByTeam) {
                                 membersByTeam = membersByTeam || {};
+                                var current = getCurrentTeam();
+                                var currentTeamId = current && current.id;
                                 teamListContent.innerHTML = "<ul class='team-list-ul'>" +
                                     list.map(function (t) {
                                         var inviteUrl = baseUrl + "team-beitreten.html?team=" + encodeURIComponent(t.id);
@@ -161,16 +175,27 @@
                                         var members = membersByTeam[t.id] || [];
                                         var membersText = members.length ? "Mitglieder: " + members.map(escapeHtml).join(", ") : "Keine Mitglieder";
                                         var isOwner = t.created_by === currentUserId;
+                                        var isCurrent = t.id === currentTeamId;
+                                        var currentBadge = isCurrent ? "<span class='current-team-badge'>Aktuelles Team</span>" : "";
+                                        var currentBtn = "<button type='button' class='btn btn-current-team set-current-team-btn' data-team-id='" + t.id + "' data-team-name='" + (t.name || "").replace(/'/g, "&#39;").replace(/"/g, "&quot;") + "'>" + (isCurrent ? "Aktuelles Team" : "Heute dieses Team") + "</button>";
                                         var deleteBtn = isOwner
                                             ? "<button type='button' class='btn btn-delete delete-team-btn' data-team-id='" + t.id + "' data-team-name='" + (t.name || "").replace(/'/g, "&#39;").replace(/"/g, "&quot;") + "'>Team löschen</button>"
                                             : "";
-                                        return "<li class='team-item'><div class='team-item-info'><strong>" + (t.name || "Unbenannt") + "</strong>" +
+                                        return "<li class='team-item'><div class='team-item-info'><strong>" + (t.name || "Unbenannt") + "</strong>" + currentBadge +
                                             "<div class='team-item-meta'>Owner: " + escapeHtml(ownerName) + "</div>" +
                                             "<div class='team-item-meta'>" + membersText + "</div></div>" +
                                             "<div class='team-item-actions'>" +
+                                            currentBtn +
                                             "<button type='button' class='btn copy-invite-btn' data-invite-url='" + inviteUrl.replace(/'/g, "&#39;") + "'>Einladungslink kopieren</button>" +
                                             deleteBtn + "</div></li>";
                                     }).join("") + "</ul>";
+                                teamListContent.querySelectorAll(".set-current-team-btn").forEach(function (btn) {
+                                    btn.addEventListener("click", function () {
+                                        setCurrentTeam(this.getAttribute("data-team-id"), this.getAttribute("data-team-name"));
+                                        showMessage("Aktuelles Team gesetzt. Sieger kannst du auf der Startseite eintragen.", "info");
+                                        loadTeams();
+                                    });
+                                });
                                 teamListContent.querySelectorAll(".copy-invite-btn").forEach(function (btn) {
                                     btn.addEventListener("click", function () {
                                         var url = this.getAttribute("data-invite-url");

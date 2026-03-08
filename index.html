@@ -83,6 +83,10 @@
             <a href="uebersicht.html" class="btn">Varianten Übersicht</a>
             <a href="ermitteln.html" class="btn">Varianten ermitteln</a>
         </div>
+        <div id="currentTeamBlock" style="display:none; margin-top:16px; padding:12px; background:#e7f3ff; border-radius:8px; text-align:center;">
+            <div style="margin-bottom:8px;">Heute: <strong id="currentTeamName"></strong></div>
+            <a href="sieger-eintragen.html" id="siegerEintragenBtn" class="btn">Sieger eintragen</a>
+        </div>
         <div class="buttons" id="authButtons" style="margin-top:10px; display:none;"></div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -125,6 +129,14 @@
 
         (function () {
             var authButtons = document.getElementById("authButtons");
+            var currentTeamBlock = document.getElementById("currentTeamBlock");
+            var currentTeamNameEl = document.getElementById("currentTeamName");
+            function getCurrentTeam() {
+                try {
+                    var s = localStorage.getItem("ssp_current_team");
+                    return s ? JSON.parse(s) : null;
+                } catch (e) { return null; }
+            }
             function updateAuthUI() {
                 getSupabase().auth.getSession().then(function (r) {
                     var session = r.data.session;
@@ -136,7 +148,15 @@
                         a1.className = "btn";
                         a1.textContent = "Meine Teams";
                         authButtons.appendChild(a1);
+                        var current = getCurrentTeam();
+                        if (current && current.id && current.name) {
+                            currentTeamNameEl.textContent = current.name;
+                            currentTeamBlock.style.display = "block";
+                        } else {
+                            currentTeamBlock.style.display = "none";
+                        }
                     } else {
+                        currentTeamBlock.style.display = "none";
                         var a = document.createElement("a");
                         a.href = "login.html";
                         a.className = "btn";

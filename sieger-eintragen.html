@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sieger eintragen – Schere, Stein, Papier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body, html { min-height: 100%; margin: 0; display: flex; flex-direction: column; font-family: 'Baloo 2', cursive; background: #f0f0f0; }
+        .container { padding: 24px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 420px; width: 100%; }
+        body > .wrap { flex: 1; display: flex; flex-direction: column; align-items: center; margin: 0 auto; padding: 20px; width: 100%; box-sizing: border-box; }
+        h1 { font-size: 1.3em; margin: 0 0 16px 0; }
+        .form-group { margin-bottom: 16px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: 700; }
+        .form-group input, .form-group select { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; font-size: 1em; }
+        .form-group input[readonly] { background: #f5f5f5; }
+        button[type="submit"] { width: 100%; padding: 12px; background: #267bb5; color: #fff; border: none; border-radius: 5px; font-family: inherit; font-size: 1em; cursor: pointer; }
+        button[type="submit"]:hover { background: #1a5d8b; }
+        button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
+        .message { margin: 16px 0; padding: 10px; border-radius: 5px; }
+        .message.info { background: #e7f3ff; color: #333; }
+        .message.error { background: #fee; color: #c00; }
+        .message.success { background: #e7f7e7; color: #0a0; }
+        .btn { display: inline-block; margin-top: 12px; padding: 10px 16px; background: #267bb5; color: white; border-radius: 5px; text-decoration: none; font-family: inherit; }
+        .btn:hover { background: #1a5d8b; }
+    </style>
+</head>
+<body>
+    <div id="app-nav"></div>
+    <div class="wrap">
+        <div class="container">
+            <h1>Sieger eintragen</h1>
+            <div id="message" class="message" style="display:none;"></div>
+            <div id="formBox" style="display:none;">
+                <form id="winnerForm">
+                    <div class="form-group">
+                        <label>Team</label>
+                        <input type="text" id="teamName" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Variante</label>
+                        <select id="variant" required>
+                            <option value="">– Bitte wählen –</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sieger</label>
+                        <select id="winner" required>
+                            <option value="">– Bitte wählen –</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Symbol des Siegers</label>
+                        <select id="symbol">
+                            <option value="">– optional –</option>
+                            <option value="scissors">Schere</option>
+                            <option value="rock">Stein</option>
+                            <option value="paper">Papier</option>
+                        </select>
+                    </div>
+                    <button type="submit" id="submitBtn">Eintragen</button>
+                </form>
+            </div>
+            <a href="index.html" class="btn">Zur Startseite</a>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        (function () {
+            var messageEl = document.getElementById("message");
+            var formBox = document.getElementById("formBox");
+            var teamNameEl = document.getElementById("teamName");
+            var variantSelect = document.getElementById("variant");
+            var winnerSelect = document.getElementById("winner");
+            var symbolSelect = document.getElementById("symbol");
+            var form = document.getElementById("winnerForm");
+            var submitBtn = document.getElementById("submitBtn");
+
+            function getCurrentTeam() {
+                try {
+                    var s = localStorage.getItem("ssp_current_team");
+                    return s ? JSON.parse(s) : null;
+                } catch (e) { return null; }
+            }
+            function showMessage(text, type) {
+                messageEl.textContent = text;
+                messageEl.className = "message " + (type || "info");
+                messageEl.style.display = "block";
+            }
+
+            getSupabase().auth.getSession().then(function (r) {
+                if (!r.data.session) {
+                    window.location.href = "login.html?redirect=" + encodeURIComponent("sieger-eintragen.html");
+                    return;
+                }
+                var current = getCurrentTeam();
+                if (!current || !current.id) {
+                    showMessage("Bitte wähle zuerst auf „Meine Teams“ ein Team als „Heute dieses Team“.", "error");
+                    return;
+                }
+                teamNameEl.value = current.name || current.id;
+                formBox.style.display = "block";
+                return Promise.all([
+                    getSupabase().from("variants").select("id, name").eq("is_active", true).order("name"),
+                    getSupabase().from("players").select("id, name").eq("team_id", current.id).order("name")
+                ]).then(function (results) {
+                    var varRes = results[0];
+                    var playRes = results[1];
+                    if (varRes.error) throw varRes.error;
+                    if (playRes.error) throw playRes.error;
+                    variantSelect.innerHTML = "<option value=''>– Bitte wählen –</option>" +
+                        (varRes.data || []).map(function (v) {
+                            return "<option value=\"" + v.id + "\">" + (v.name || "Unbekannt").replace(/</g, "&lt;").replace(/"/g, "&quot;") + "</option>";
+                        }).join("");
+                    winnerSelect.innerHTML = "<option value=''>– Bitte wählen –</option>" +
+                        (playRes.data || []).map(function (p) {
+                            return "<option value=\"" + p.id + "\">" + (p.name || "Unbekannt").replace(/</g, "&lt;").replace(/"/g, "&quot;") + "</option>";
+                        }).join("");
+                });
+            }).catch(function (err) {
+                showMessage(err.message || "Laden fehlgeschlagen.", "error");
+            });
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var current = getCurrentTeam();
+                if (!current || !current.id) {
+                    showMessage("Kein aktuelles Team. Bitte auf Meine Teams ein Team wählen.", "error");
+                    return;
+                }
+                var variantId = variantSelect.value;
+                var winnerId = winnerSelect.value;
+                var symbol = symbolSelect.value || null;
+                if (!variantId) {
+                    showMessage("Bitte eine Variante wählen.", "error");
+                    return;
+                }
+                if (!winnerId) {
+                    showMessage("Bitte einen Sieger wählen.", "error");
+                    return;
+                }
+                submitBtn.disabled = true;
+                getSupabase().rpc("add_winner", {
+                    p_team_id: current.id,
+                    p_variant_id: variantId,
+                    p_winner_player_id: winnerId,
+                    p_symbol: symbol
+                }).then(function (r) {
+                    if (r.error) throw r.error;
+                    showMessage("Sieger wurde eingetragen.", "success");
+                    variantSelect.value = "";
+                    winnerSelect.value = "";
+                    symbolSelect.value = "";
+                }).catch(function (err) {
+                    showMessage(err.message || "Eintragen fehlgeschlagen.", "error");
+                }).finally(function () {
+                    submitBtn.disabled = false;
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
