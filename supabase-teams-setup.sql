@@ -82,10 +82,7 @@ create policy "Users can read teams they belong to" on public.teams
 
 drop policy if exists "Authenticated users can create teams" on public.teams;
 create policy "Authenticated users can create teams" on public.teams
-  for insert with check (auth.uid() IS NOT NULL);
-
-drop policy if exists "Creator can set created_by" on public.teams;
--- created_by wird im Insert vom Client gesetzt (auth.uid())
+  for insert with check (created_by = auth.uid());
 
 drop policy if exists "Users can update teams they belong to" on public.teams;
 create policy "Users can update teams they belong to" on public.teams

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team beitreten – Schere, Stein, Papier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body, html { height: 100%; margin: 0; display: flex; justify-content: center; align-items: center; font-family: 'Baloo 2', cursive; background: #f0f0f0; }
+        .container { padding: 24px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 400px; width: 100%; text-align: center; }
+        h1 { font-size: 1.3em; margin: 0 0 12px 0; }
+        .message { margin: 16px 0; padding: 10px; border-radius: 5px; }
+        .message.loading { background: #e7f3ff; color: #333; }
+        .message.success { background: #e7f7e7; color: #0a0; }
+        .message.error { background: #fee; color: #c00; }
+        .btn { display: inline-block; margin-top: 12px; padding: 10px 16px; background: #267bb5; color: white; border-radius: 5px; text-decoration: none; font-family: inherit; }
+        .btn:hover { background: #1a5d8b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Team beitreten</h1>
+        <div id="status" class="message loading">Bitte warten …</div>
+        <a href="teams.html" id="backLink" class="btn" style="display:none;">Zu Meine Teams</a>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script>
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            var teamId = params.get("team");
+            var statusEl = document.getElementById("status");
+            var backLink = document.getElementById("backLink");
+
+            function setStatus(text, type) {
+                statusEl.textContent = text;
+                statusEl.className = "message " + (type || "loading");
+            }
+
+            if (!teamId || !/^[0-9a-f-]{36}$/i.test(teamId)) {
+                setStatus("Ungültiger Einladungslink. Keine Team-ID vorhanden.", "error");
+                backLink.style.display = "inline-block";
+                return;
+            }
+
+            function getRedirectUrl() {
+                return "team-beitreten.html?team=" + encodeURIComponent(teamId);
+            }
+
+            getSupabase().auth.getSession().then(function (r) {
+                if (!r.data.session) {
+                    window.location.href = "login.html?redirect=" + encodeURIComponent(getRedirectUrl());
+                    return;
+                }
+                var userId = r.data.session.user.id;
+                return getSupabase().from("profiles").select("display_name").eq("user_id", userId).maybeSingle()
+                    .then(function (profRes) {
+                        if (profRes.error) throw profRes.error;
+                        if (!profRes.data || !profRes.data.display_name) {
+                            window.location.href = "profil.html?redirect=" + encodeURIComponent(getRedirectUrl());
+                            return;
+                        }
+                        var displayName = profRes.data.display_name;
+                        return getSupabase().from("team_members").insert({
+                            team_id: teamId,
+                            user_id: userId
+                        }).then(function (tmRes) {
+                            if (tmRes.error) {
+                                if (tmRes.error.code === "23505") {
+                                    setStatus("Du bist bereits Mitglied in diesem Team.", "success");
+                                    backLink.style.display = "inline-block";
+                                    return;
+                                }
+                                if (tmRes.error.code === "23503") {
+                                    setStatus("Dieses Team existiert nicht oder der Link ist ungültig.", "error");
+                                    backLink.style.display = "inline-block";
+                                    return;
+                                }
+                                throw tmRes.error;
+                            }
+                            return getSupabase().from("players").insert({
+                                team_id: teamId,
+                                user_id: userId,
+                                name: displayName
+                            });
+                        }).then(function (pRes) {
+                            if (pRes && pRes.error) throw pRes.error;
+                            setStatus("Du bist dem Team beigetreten.", "success");
+                            backLink.style.display = "inline-block";
+                            setTimeout(function () {
+                                window.location.href = "teams.html";
+                            }, 1500);
+                        });
+                    });
+            }).catch(function (err) {
+                setStatus(err.message || "Beitritt fehlgeschlagen.", "error");
+                backLink.style.display = "inline-block";
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -20,6 +20,10 @@
         .message.info { background: #e7f3ff; color: #333; }
         #teamList { margin-top: 16px; }
         #teamList.empty { color: #666; }
+        .team-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .team-item:last-child { border-bottom: none; }
+        .copy-invite-btn { padding: 6px 10px; font-size: 0.9em; flex-shrink: 0; }
+        .team-list-ul { margin: 0; padding-left: 20px; list-style: none; padding-left: 0; }
     </style>
 </head>
 <body>
@@ -106,9 +110,39 @@
                                         teamListContent.textContent = "Keine Teams gefunden.";
                                         return;
                                     }
-                                    teamListContent.innerHTML = "<ul style='margin:0; padding-left:20px;'>" +
-                                        list.map(function (t) { return "<li><strong>" + (t.name || "Unbenannt") + "</strong></li>"; }).join("") +
+                                    var baseUrl = window.location.origin + window.location.pathname.replace(/[^/]+$/, "");
+                                    teamListContent.innerHTML = "<ul class='team-list-ul'>" +
+                                        list.map(function (t) {
+                                            var inviteUrl = baseUrl + "team-beitreten.html?team=" + encodeURIComponent(t.id);
+                                            return "<li class='team-item'><strong>" + (t.name || "Unbenannt") + "</strong>" +
+                                                "<button type='button' class='btn copy-invite-btn' data-invite-url='" + inviteUrl.replace(/'/g, "&#39;") + "'>Einladungslink kopieren</button></li>";
+                                        }).join("") +
                                         "</ul>";
+                                    teamListContent.querySelectorAll(".copy-invite-btn").forEach(function (btn) {
+                                        btn.addEventListener("click", function () {
+                                            var url = this.getAttribute("data-invite-url");
+                                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                                navigator.clipboard.writeText(url).then(function () {
+                                                    showMessage("Einladungslink wurde in die Zwischenablage kopiert.", "info");
+                                                }).catch(function () { fallbackCopy(url); });
+                                            } else {
+                                                fallbackCopy(url);
+                                            }
+                                        });
+                                    });
+                                    function fallbackCopy(url) {
+                                        var ta = document.createElement("textarea");
+                                        ta.value = url;
+                                        document.body.appendChild(ta);
+                                        ta.select();
+                                        try {
+                                            document.execCommand("copy");
+                                            showMessage("Einladungslink wurde in die Zwischenablage kopiert.", "info");
+                                        } catch (e) {
+                                            showMessage("Link kopieren fehlgeschlagen. Bitte manuell kopieren: " + url, "error");
+                                        }
+                                        document.body.removeChild(ta);
+                                    }
                                 });
                         });
                 }).catch(function (err) {
