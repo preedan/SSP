@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,73 +20,61 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 40px auto;
             width: 100%;
             box-sizing: border-box;
+            padding: 16px;
         }
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 32px 20px;
+            max-width: 400px;
+            width: 100%;
+            padding: 24px 20px;
             background: #ffffff;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         h1 {
-            font-size: 2em;
-            margin: 0 0 24px 0;
+            font-size: 1.5em;
+            margin: 0 0 8px 0;
+        }
+        .team-name {
+            font-size: 1.25em;
+            font-weight: 700;
+            color: #267bb5;
+            margin-bottom: 20px;
+            min-height: 1.5em;
+        }
+        .team-name.empty {
+            color: #999;
+            font-weight: 400;
         }
         img {
             width: 100%;
-            max-width: 300px;
+            max-width: 160px;
             height: auto;
-            margin-bottom: 24px;
-        }
-        .quote {
-            font-size: 1em;
-            color: #555;
-            margin: 0 auto 28px auto;
-            max-width: 90%;
-            min-height: 4em;
-            opacity: 1;
-            transition: opacity 0.4s ease;
-            text-align: center;
-            white-space: normal;
-            padding: 0 10px;
-        }
-        .buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%;
-        }
-        @media (min-width: 768px) {
-            .buttons {
-                flex-direction: row;
-            }
+            margin-bottom: 16px;
         }
         .btn {
             width: 100%;
-            min-height: 44px;
+            min-height: 48px;
             box-sizing: border-box;
             text-decoration: none;
-            padding: 12px 16px;
-            background-color: #5a9fd4;
+            padding: 14px 16px;
+            background-color: #267bb5;
             color: white;
             border-radius: 8px;
             transition: background-color 0.2s ease, transform 0.1s ease;
-            white-space: normal;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             font-family: inherit;
-            font-size: 1em;
+            font-size: 1.1em;
+            font-weight: 700;
         }
         .btn:hover {
-            background-color: #4a8fc4;
+            background-color: #1a5d8b;
         }
         .btn:active {
             transform: scale(0.98);
@@ -94,104 +82,40 @@
         .btn:focus {
             outline: 3px solid #90c2ff;
         }
-        .btn-primary {
-            background-color: #267bb5;
-            font-weight: 700;
-        }
-        .btn-primary:hover {
-            background-color: #1a5d8b;
-        }
-        #currentTeamBlock {
-            margin-top: 20px;
-            padding: 16px;
-            background: #e7f3ff;
-            border-radius: 8px;
-            text-align: center;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        #currentTeamBlock .btn {
-            margin-top: 8px;
-        }
-    </style>     
+    </style>
 </head>
 <body>
     <div id="app-nav"></div>
     <div class="container">
-        <h1 id="header">Schere, Stein, Papier</h1>
-        <img src="Startpage_picture.JPG" alt="Rock Paper Scissors Illustration">
-        <div id="quote-container" class="quote">Quotes will appear here and change every 10 seconds.</div>
-        <div class="buttons" id="mainButtons">
-            <a href="ermitteln.html" class="btn btn-primary">Varianten ermitteln</a>
-            <a href="uebersicht.html" class="btn">Varianten Übersicht</a>
-        </div>
-        <div id="currentTeamBlock" style="display:none;">
-            <div style="margin-bottom:8px;">Heute: <strong id="currentTeamName"></strong></div>
-            <a href="sieger-eintragen.html" id="siegerEintragenBtn" class="btn btn-primary">Sieger eintragen</a>
-        </div>
+        <h1>Schere, Stein, Papier</h1>
+        <p id="currentTeamName" class="team-name empty">Kein Team gewählt</p>
+        <img src="Startpage_picture.JPG" alt="Schere, Stein, Papier">
+        <a href="ermitteln.html" class="btn">Variante wählen</a>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="nav.js"></script>
     <script>
-        const quotes = [
-            "Im Kampf für die Unabhängigkeit Indiens setze ich auf die Gewaltlosigkeit von Papier. - Mahatma Gandhi",
-            "Und sie bewegt sich doch - Galileo Galilei (Nachdem sein Gegenspieler beim blinden Bandit die linke Hand bewegte um zu schummeln.)",
-            "Stein oder nicht Stein, das ist hier die Frage. - William Shakespeare",
-            "Denn das Wort ist wahr, daß ein Extrem regelmäßig das entgegengesetzte Extrem auslöst. - Sokrates (Nachdem in einer Runde alle Spieler Papier nahmen.)",
-            "Viel zu lernen du noch hast - Yoda (beim Spielen von Kreiz-Deifi Delüx)",
-            "Der gute alte Stein ermöglichte es mir, der erste Mensch am Mond zu sein. - Neil Armstrong (Nach dem Sieg über Buzz Aldrin.)",
-            "Ich kam, ich sah, ich siegte - Julius Caesar (beim Spielen der klassischen Variante)",
-            "Dumm ist der, der Dummes tut - Forrest Gump (Beim Schere Stein Extreme, nachdem sein Gegenspieler Papier nahm.)",
-            "Es ist vollbracht! - Jesus von Nazareth (Nach der Erfindung des Kreuzers.)",
-            "Es werde Licht - Gott (Nach einer Partie Blinder Bandit.)",
-            "Wer kämpft, kann verlieren. Wer nicht kämpft, hat schon verloren. - Bertolt Brecht (Vor der nächsten Runde Double Trouble.)",
-            "In Schero Veritas - Erasmus von Rotterdam",
-            "Gott würfelt nicht. Er spielt Schere, Stein, Papier. - Albert Einstein",
-            "I have a dream that one day this nation will rise up and live out the true meaning of this game. - Martin Luther King",
-            "Ein Stein - Albert Einstein"
-        ];
-        let currentQuoteIndex = Math.floor(Math.random() * quotes.length);
-        const quoteContainer = document.getElementById('quote-container');
-
-        function displayQuote() {
-            quoteContainer.style.opacity = 0;
-            setTimeout(() => {
-                quoteContainer.textContent = quotes[currentQuoteIndex];
-                quoteContainer.style.opacity = 1;
-                currentQuoteIndex = (currentQuoteIndex + 1) % quotes.length;
-            }, 200);
-        }
-
-        displayQuote();
-        setInterval(displayQuote, 10000);
-
         (function () {
-            var currentTeamBlock = document.getElementById("currentTeamBlock");
-            var currentTeamNameEl = document.getElementById("currentTeamName");
-            function getCurrentTeam() {
+            var el = document.getElementById("currentTeamName");
+            function updateTeamDisplay() {
                 try {
                     var s = localStorage.getItem("ssp_current_team");
-                    return s ? JSON.parse(s) : null;
-                } catch (e) { return null; }
-            }
-            function updateCurrentTeamBlock() {
-                getSupabase().auth.getSession().then(function (r) {
-                    if (!r.data.session) {
-                        currentTeamBlock.style.display = "none";
-                        return;
-                    }
-                    var current = getCurrentTeam();
-                    if (current && current.id && current.name) {
-                        currentTeamNameEl.textContent = current.name;
-                        currentTeamBlock.style.display = "block";
+                    var current = s ? JSON.parse(s) : null;
+                    if (current && current.name) {
+                        el.textContent = current.name;
+                        el.classList.remove("empty");
                     } else {
-                        currentTeamBlock.style.display = "none";
+                        el.textContent = "Kein Team gewählt";
+                        el.classList.add("empty");
                     }
-                });
+                } catch (e) {
+                    el.textContent = "Kein Team gewählt";
+                    el.classList.add("empty");
+                }
             }
-            getSupabase().auth.onAuthStateChange(function () { updateCurrentTeamBlock(); });
-            updateCurrentTeamBlock();
+            updateTeamDisplay();
+            window.addEventListener("storage", updateTeamDisplay);
         })();
     </script>
 </body>

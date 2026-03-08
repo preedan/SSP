@@ -53,6 +53,7 @@
                 ? "<div class=\"app-nav-dropdown-info\"><strong>" + escapeHtml(displayName || "Nutzer") + "</strong></div>" +
                   "<div class=\"app-nav-dropdown-info app-nav-dropdown-email\">" + escapeHtml(email) + "</div>" +
                   "<a href=\"teams.html\" class=\"app-nav-dropdown-item\">Meine Teams</a>" +
+                  "<a href=\"uebersicht.html\" class=\"app-nav-dropdown-item\">Meine Varianten</a>" +
                   "<button type=\"button\" class=\"app-nav-dropdown-item app-nav-dropdown-btn\" id=\"app-nav-signout\">Abmelden</button>"
                 : "<a href=\"login.html\" class=\"app-nav-dropdown-item\">Anmelden</a>") +
             "</div></div>";
