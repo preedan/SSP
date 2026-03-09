@@ -36,7 +36,7 @@
 </head>
 <body>
     <div id="app-nav"></div>
-    <h1>Statistik & Auswertung</h1>
+    <h1>Statistik</h1>
     <div id="message" class="message" style="display:none;"></div>
     <div class="card">
         <h2>Filter</h2>
@@ -69,6 +69,9 @@
         <p class="summary" id="summaryText"></p>
         <h2>Verluste pro Spieler</h2>
         <div id="lossesTableWrap" class="table-wrap"></div>
+        <h2 style="margin-top:20px;">Verluste nach Symbol</h2>
+        <p class="summary" id="symbolSummaryText"></p>
+        <div id="symbolTableWrap" class="table-wrap"></div>
         <h2 style="margin-top:20px;">Runden pro Variante</h2>
         <div id="variantTableWrap" class="table-wrap"></div>
     </div>
@@ -81,6 +84,8 @@
             var resultCard = document.getElementById("resultCard");
             var summaryText = document.getElementById("summaryText");
             var lossesTableWrap = document.getElementById("lossesTableWrap");
+            var symbolSummaryText = document.getElementById("symbolSummaryText");
+            var symbolTableWrap = document.getElementById("symbolTableWrap");
             var variantTableWrap = document.getElementById("variantTableWrap");
             var filterTeam = document.getElementById("filterTeam");
             var filterVariant = document.getElementById("filterVariant");
@@ -149,7 +154,7 @@
                         showMessage("Keine Sessions gefunden. Spiele ein paar Runden, dann erscheinen hier Statistiken.", "empty");
                         return;
                     }
-                    return getSupabase().from("rounds").select("id, session_id, variant_id, loser_player_id, played_at, loser:loser_player_id(name), variant:variant_id(name)").in("session_id", sessionIds);
+                    return getSupabase().from("rounds").select("id, session_id, variant_id, loser_player_id, symbol, played_at, loser:loser_player_id(name), variant:variant_id(name)").in("session_id", sessionIds);
                 }).then(function (rRes) {
                     if (rRes.error) throw rRes.error;
                     var rounds = rRes.data || [];
@@ -162,6 +167,8 @@
                     var total = rounds.length;
                     var lossesByPlayer = {};
                     var countByVariant = {};
+                    var countBySymbol = { scissors: 0, rock: 0, paper: 0, none: 0 };
+                    var symbolLabels = { scissors: "Schere", rock: "Stein", paper: "Papier", none: "Ohne Angabe" };
                     rounds.forEach(function (r) {
                         var name = (r.loser && r.loser.name) ? r.loser.name : "Unbekannt";
                         if (!lossesByPlayer[name]) lossesByPlayer[name] = 0;
@@ -169,10 +176,13 @@
                         var vname = (r.variant && r.variant.name) ? r.variant.name : "Unbekannt";
                         if (!countByVariant[vname]) countByVariant[vname] = 0;
                         countByVariant[vname]++;
+                        var sym = (r.symbol && (r.symbol === "scissors" || r.symbol === "rock" || r.symbol === "paper")) ? r.symbol : "none";
+                        countBySymbol[sym]++;
                     });
 
                     var lossRows = Object.keys(lossesByPlayer).sort(function (a, b) { return lossesByPlayer[b] - lossesByPlayer[a]; });
                     var variantRows = Object.keys(countByVariant).sort(function (a, b) { return countByVariant[b] - countByVariant[a]; });
+                    var symbolOrder = ["scissors", "rock", "paper", "none"];
 
                     summaryText.textContent = total + " Runde(n) im gewählten Zeitraum.";
                     lossesTableWrap.innerHTML = total === 0 ? "<p class=\"message empty\">Keine Runden.</p>" : "<table><thead><tr><th>Spieler</th><th>Verluste</th><th>Anteil</th></tr></thead><tbody>" +
@@ -181,6 +191,17 @@
                             var pct = total ? (Math.round((n / total) * 100)) : 0;
                             return "<tr><td>" + name.replace(/</g, "&lt;") + "</td><td>" + n + "</td><td><span class=\"pct\">" + pct + " %</span></td></tr>";
                         }).join("") + "</tbody></table>";
+                    var withSymbol = countBySymbol.scissors + countBySymbol.rock + countBySymbol.paper;
+                    symbolSummaryText.textContent = withSymbol === 0
+                        ? "Bei keiner Runde wurde ein Symbol erfasst. Beim Eintragen kannst du optional „Symbol des Verlierers“ angeben."
+                        : "Anteil der Verluste pro Symbol (von " + total + " Runden, " + withSymbol + " mit Symbol).";
+                    symbolTableWrap.innerHTML = total === 0 ? "" : "<table><thead><tr><th>Symbol</th><th>Anzahl</th><th>Anteil</th></tr></thead><tbody>" +
+                        symbolOrder.map(function (key) {
+                            var n = countBySymbol[key];
+                            var pct = total ? (Math.round((n / total) * 100)) : 0;
+                            return "<tr><td>" + symbolLabels[key].replace(/</g, "&lt;") + "</td><td>" + n + "</td><td><span class=\"pct\">" + pct + " %</span></td></tr>";
+                        }).join("") + "</tbody></table>";
+
                     variantTableWrap.innerHTML = total === 0 ? "" : "<table><thead><tr><th>Variante</th><th>Anzahl Runden</th></tr></thead><tbody>" +
                         variantRows.map(function (name) {
                             return "<tr><td>" + name.replace(/</g, "&lt;") + "</td><td>" + countByVariant[name] + "</td></tr>";
