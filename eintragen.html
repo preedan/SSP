@@ -22,15 +22,21 @@
         .message.info { background: #e7f3ff; color: #333; }
         .message.error { background: #fee; color: #c00; }
         .message.success { background: #e7f7e7; color: #0a0; }
-        .btn { display: inline-block; margin-top: 12px; padding: 10px 16px; background: #267bb5; color: white; border-radius: 5px; text-decoration: none; font-family: inherit; }
-        .btn:hover { background: #1a5d8b; }
+        .page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+        .page-header h1 { margin: 0; }
+        .close-btn { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-width: 44px; min-height: 44px; color: #666; text-decoration: none; font-size: 1.8em; line-height: 1; border-radius: 8px; box-sizing: border-box; }
+        .close-btn:hover { background: #eee; color: #333; }
+        .close-btn:focus { outline: 3px solid #90c2ff; outline-offset: 2px; }
     </style>
 </head>
 <body>
     <div id="app-nav"></div>
     <div class="wrap">
         <div class="container">
-            <h1>Verlierer eintragen</h1>
+            <div class="page-header">
+                <h1>Verlierer eintragen</h1>
+                <a href="ermitteln.html" class="close-btn" title="Variante ermitteln" aria-label="Schließen und zur Varianten-Auswahl">×</a>
+            </div>
             <div id="message" class="message" style="display:none;"></div>
             <div id="formBox" style="display:none;">
                 <form id="loserForm">
@@ -62,7 +68,6 @@
                     <button type="submit" id="submitBtn">Eintragen</button>
                 </form>
             </div>
-            <a href="index.html" class="btn">Zur Startseite</a>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
