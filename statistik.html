@@ -18,6 +18,8 @@
         button { padding: 8px 16px; background: #267bb5; color: #fff; border: none; border-radius: 5px; font-family: inherit; cursor: pointer; }
         button:hover { background: #1a5d8b; }
         .summary { font-size: 1.1em; margin-bottom: 16px; }
+        .chart-wrap { margin-bottom: 16px; max-width: 320px; }
+        .chart-wrap canvas { max-height: 280px; }
         .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }
         table { width: 100%; border-collapse: collapse; min-width: 200px; }
         th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #eee; }
@@ -68,14 +70,15 @@
         <h2>Zusammenfassung</h2>
         <p class="summary" id="summaryText"></p>
         <h2>Verluste pro Spieler</h2>
-        <div id="lossesTableWrap" class="table-wrap"></div>
+        <div id="lossesChartWrap" class="chart-wrap"></div>
         <h2 style="margin-top:20px;">Verluste nach Symbol</h2>
         <p class="summary" id="symbolSummaryText"></p>
-        <div id="symbolTableWrap" class="table-wrap"></div>
+        <div id="symbolChartWrap" class="chart-wrap"></div>
         <h2 style="margin-top:20px;">Runden pro Variante</h2>
         <div id="variantTableWrap" class="table-wrap"></div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="supabase-config.js"></script>
     <script src="nav.js"></script>
     <script>
@@ -83,9 +86,11 @@
             var messageEl = document.getElementById("message");
             var resultCard = document.getElementById("resultCard");
             var summaryText = document.getElementById("summaryText");
-            var lossesTableWrap = document.getElementById("lossesTableWrap");
+            var lossesChartWrap = document.getElementById("lossesChartWrap");
             var symbolSummaryText = document.getElementById("symbolSummaryText");
-            var symbolTableWrap = document.getElementById("symbolTableWrap");
+            var symbolChartWrap = document.getElementById("symbolChartWrap");
+            var lossesChartInstance = null;
+            var symbolChartInstance = null;
             var variantTableWrap = document.getElementById("variantTableWrap");
             var filterTeam = document.getElementById("filterTeam");
             var filterVariant = document.getElementById("filterVariant");
@@ -185,22 +190,42 @@
                     var symbolOrder = ["scissors", "rock", "paper", "none"];
 
                     summaryText.textContent = total + " Runde(n) im gewählten Zeitraum.";
-                    lossesTableWrap.innerHTML = total === 0 ? "<p class=\"message empty\">Keine Runden.</p>" : "<table><thead><tr><th>Spieler</th><th>Verluste</th><th>Anteil</th></tr></thead><tbody>" +
-                        lossRows.map(function (name) {
-                            var n = lossesByPlayer[name];
-                            var pct = total ? (Math.round((n / total) * 100)) : 0;
-                            return "<tr><td>" + name.replace(/</g, "&lt;") + "</td><td>" + n + "</td><td><span class=\"pct\">" + pct + " %</span></td></tr>";
-                        }).join("") + "</tbody></table>";
+
+                    if (lossesChartInstance) { lossesChartInstance.destroy(); lossesChartInstance = null; }
+                    if (symbolChartInstance) { symbolChartInstance.destroy(); symbolChartInstance = null; }
+
+                    if (total === 0) {
+                        lossesChartWrap.innerHTML = "<p class=\"message empty\">Keine Runden.</p>";
+                    } else {
+                        lossesChartWrap.innerHTML = "<canvas id=\"lossesChart\"></canvas>";
+                        var lossLabels = lossRows.map(function (name) { return name; });
+                        var lossData = lossRows.map(function (name) { return lossesByPlayer[name]; });
+                        var palette = ["#267bb5", "#2a9d2a", "#c33", "#e67e22", "#9b59b6", "#1abc9c", "#f1c40f", "#95a5a6"];
+                        var lossColors = lossLabels.map(function (_, i) { return palette[i % palette.length]; });
+                        lossesChartInstance = new Chart(document.getElementById("lossesChart"), {
+                            type: "pie",
+                            data: { labels: lossLabels, datasets: [{ data: lossData, backgroundColor: lossColors, borderWidth: 1, borderColor: "#fff" }] },
+                            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: "bottom" } } }
+                        });
+                    }
+
                     var withSymbol = countBySymbol.scissors + countBySymbol.rock + countBySymbol.paper;
                     symbolSummaryText.textContent = withSymbol === 0
                         ? "Bei keiner Runde wurde ein Symbol erfasst. Beim Eintragen kannst du optional „Symbol des Verlierers“ angeben."
                         : "Anteil der Verluste pro Symbol (von " + total + " Runden, " + withSymbol + " mit Symbol).";
-                    symbolTableWrap.innerHTML = total === 0 ? "" : "<table><thead><tr><th>Symbol</th><th>Anzahl</th><th>Anteil</th></tr></thead><tbody>" +
-                        symbolOrder.map(function (key) {
-                            var n = countBySymbol[key];
-                            var pct = total ? (Math.round((n / total) * 100)) : 0;
-                            return "<tr><td>" + symbolLabels[key].replace(/</g, "&lt;") + "</td><td>" + n + "</td><td><span class=\"pct\">" + pct + " %</span></td></tr>";
-                        }).join("") + "</tbody></table>";
+                    if (total === 0) {
+                        symbolChartWrap.innerHTML = "";
+                    } else {
+                        symbolChartWrap.innerHTML = "<canvas id=\"symbolChart\"></canvas>";
+                        var symLabels = symbolOrder.map(function (key) { return symbolLabels[key]; });
+                        var symData = symbolOrder.map(function (key) { return countBySymbol[key]; });
+                        var symColors = ["#5dade2", "#7dcea0", "#f5b041", "#bdc3c7"];
+                        symbolChartInstance = new Chart(document.getElementById("symbolChart"), {
+                            type: "pie",
+                            data: { labels: symLabels, datasets: [{ data: symData, backgroundColor: symColors, borderWidth: 1, borderColor: "#fff" }] },
+                            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: "bottom" } } }
+                        });
+                    }
 
                     variantTableWrap.innerHTML = total === 0 ? "" : "<table><thead><tr><th>Variante</th><th>Anzahl Runden</th></tr></thead><tbody>" +
                         variantRows.map(function (name) {
