@@ -11,13 +11,22 @@
         #app-nav { margin: -20px -20px 0 -20px; }
         h1 { margin-top: 0; }
         .card { background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
-        .card h2 { margin: 0 0 12px 0; font-size: 1.2em; }
-        .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 12px; }
-        .filter-group { display: flex; flex-direction: column; gap: 4px; }
-        .filter-group label { font-size: 0.9em; color: #555; }
-        .filter-group select, .filter-group input { padding: 10px 12px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; font-size: 16px; min-width: 140px; min-height: 44px; box-sizing: border-box; }
-        button { padding: 8px 16px; background: #267bb5; color: #fff; border: none; border-radius: 5px; font-family: inherit; cursor: pointer; }
-        button:hover { background: #1a5d8b; }
+        .card h2 { margin: 0; font-size: 1.2em; }
+        .filter-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 0; flex-wrap: wrap; }
+        .filter-card-header h2 { margin: 0; }
+        .filter-toggle-btn { padding: 8px 14px; background: #e8e8e8; color: #333; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; font-size: 0.95em; cursor: pointer; min-height: 40px; }
+        .filter-toggle-btn:hover { background: #ddd; }
+        .filter-toggle-btn[aria-expanded="true"] { background: #267bb5; color: #fff; border-color: #267bb5; }
+        .filter-body[hidden] { display: none !important; }
+        .filter-body { margin-top: 12px; }
+        .filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; align-items: end; margin-bottom: 0; }
+        .filter-group { display: flex; flex-direction: row; align-items: center; gap: 6px; min-width: 0; }
+        .filter-group label { font-size: 0.8em; color: #555; flex: 0 0 auto; min-width: 2.2em; }
+        .filter-group select, .filter-group input { padding: 6px 10px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; font-size: 16px; min-height: 40px; box-sizing: border-box; flex: 1; min-width: 0; }
+        .filters .filter-group-btn { grid-column: 1 / -1; }
+        .filters .filter-group-btn button { width: 100%; min-height: 44px; padding: 10px 16px; background: #267bb5; color: #fff; border: none; border-radius: 5px; font-family: inherit; font-size: 16px; cursor: pointer; }
+        .filters .filter-group-btn button:hover { background: #1a5d8b; }
+        .filter-summary { font-size: 0.9em; color: #555; margin-top: 4px; }
         .summary { font-size: 1.1em; margin-bottom: 16px; }
         .chart-wrap { margin-bottom: 16px; max-width: 320px; }
         .chart-wrap canvas { max-height: 280px; }
@@ -25,10 +34,11 @@
         table { width: 100%; border-collapse: collapse; min-width: 200px; }
         th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #eee; }
         th { background: #f5f5f5; font-weight: 700; }
-        @media (max-width: 480px) {
-            .filters { flex-direction: column; align-items: stretch; }
-            .filter-group select, .filter-group input { min-width: 0; width: 100%; }
-            #applyBtn { width: 100%; min-height: 44px; }
+        @media (max-width: 520px) {
+            .filters { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .filters .filter-group-btn { grid-column: 1 / -1; }
+            .filter-group { flex-direction: column; align-items: stretch; gap: 2px; }
+            .filter-group label { min-width: 0; }
         }
         .message { padding: 12px; border-radius: 5px; margin-bottom: 12px; }
         .message.loading { background: #e7f3ff; color: #333; }
@@ -41,30 +51,38 @@
     <div id="app-nav"></div>
     <h1>Statistik</h1>
     <div id="message" class="message" style="display:none;"></div>
-    <div class="card">
-        <h2>Filter</h2>
+    <div class="card" id="filterCard">
+        <div class="filter-card-header">
+            <h2>Filter</h2>
+            <button type="button" id="filterToggleBtn" class="filter-toggle-btn" aria-expanded="true" aria-controls="filterBody">Filter ausblenden</button>
+        </div>
+        <p id="filterSummary" class="filter-summary" aria-live="polite" style="display:none;"></p>
+        <div id="filterBody" class="filter-body">
         <div class="filters">
             <div class="filter-group">
-                <label>Team</label>
+                <label for="filterTeam">Team</label>
                 <select id="filterTeam">
                     <option value="">Alle meine Teams</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label>Variante</label>
+                <label for="filterVariant">Variante</label>
                 <select id="filterVariant">
                     <option value="">Alle Varianten</option>
                 </select>
             </div>
             <div class="filter-group">
-                <label>Von (Datum)</label>
+                <label for="filterFrom">Von</label>
                 <input type="date" id="filterFrom">
             </div>
             <div class="filter-group">
-                <label>Bis (Datum)</label>
+                <label for="filterTo">Bis</label>
                 <input type="date" id="filterTo">
             </div>
-            <button type="button" id="applyBtn">Anwenden</button>
+            <div class="filter-group filter-group-btn">
+                <button type="button" id="applyBtn">Anwenden</button>
+            </div>
+        </div>
         </div>
     </div>
     <div class="card" id="resultCard" style="display:none;">
@@ -98,6 +116,9 @@
             var filterFrom = document.getElementById("filterFrom");
             var filterTo = document.getElementById("filterTo");
             var applyBtn = document.getElementById("applyBtn");
+            var filterToggleBtn = document.getElementById("filterToggleBtn");
+            var filterBody = document.getElementById("filterBody");
+            var filterSummary = document.getElementById("filterSummary");
 
             var myTeamIds = [];
             var myTeams = [];
@@ -107,6 +128,27 @@
                 messageEl.textContent = text;
                 messageEl.className = "message " + (type || "info");
                 messageEl.style.display = "block";
+            }
+
+            function updateFilterSummary() {
+                var teamOpt = filterTeam.options[filterTeam.selectedIndex];
+                var variantOpt = filterVariant.options[filterVariant.selectedIndex];
+                var teamText = teamOpt ? teamOpt.text : "Alle Teams";
+                var variantText = variantOpt ? variantOpt.text : "Alle Varianten";
+                var fromVal = filterFrom.value;
+                var toVal = filterTo.value;
+                var parts = [teamText, variantText];
+                if (fromVal || toVal) parts.push((fromVal || "…") + " bis " + (toVal || "…"));
+                filterSummary.textContent = parts.join(" · ");
+            }
+
+            function setFilterOpen(open) {
+                var isOpen = !!open;
+                filterBody.hidden = !isOpen;
+                filterToggleBtn.setAttribute("aria-expanded", isOpen);
+                filterToggleBtn.textContent = isOpen ? "Filter ausblenden" : "Filter anzeigen";
+                filterSummary.style.display = isOpen ? "none" : "block";
+                if (!isOpen) updateFilterSummary();
             }
 
             function loadFilters() {
@@ -131,16 +173,25 @@
                         myTeamIds = myTeams.map(function (t) { return t.id; });
                         variants = vRes.data || [];
                         filterTeam.innerHTML = "<option value=''>Alle meine Teams</option>" +
-                            myTeams.map(function (t) { return "<option value=\"" + t.id + "\">" + (t.name || "").replace(/</g, "&lt;") + "</option>"; }).join("");
+                            myTeams.map(function (t) { return "<option value=\"" + (t.id || "") + "\">" + (t.name || "").replace(/</g, "&lt;") + "</option>"; }).join("");
                         filterVariant.innerHTML = "<option value=''>Alle Varianten</option>" +
                             variants.map(function (v) { return "<option value=\"" + v.id + "\">" + (v.name || "").replace(/</g, "&lt;") + "</option>"; }).join("");
+                        var currentId = null;
                         try {
                             var s = localStorage.getItem("ssp_current_team");
                             var current = s ? JSON.parse(s) : null;
-                            if (current && current.id && myTeamIds.indexOf(current.id) !== -1) {
-                                filterTeam.value = current.id;
-                            }
+                            if (current && current.id) { currentId = String(current.id); }
                         } catch (e) {}
+                        if (currentId) {
+                            for (var i = 0; i < filterTeam.options.length; i++) {
+                                if (filterTeam.options[i].value === currentId) {
+                                    filterTeam.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                        updateFilterSummary();
+                        if (window.innerWidth <= 520) setFilterOpen(false);
                     });
                 });
             }
@@ -248,6 +299,15 @@
             }
 
             applyBtn.addEventListener("click", loadStats);
+            if (filterToggleBtn && filterBody) {
+                filterToggleBtn.addEventListener("click", function () {
+                    setFilterOpen(filterBody.hidden);
+                });
+            }
+            filterTeam.addEventListener("change", updateFilterSummary);
+            filterVariant.addEventListener("change", updateFilterSummary);
+            filterFrom.addEventListener("change", updateFilterSummary);
+            filterTo.addEventListener("change", updateFilterSummary);
             loadFilters().then(function () {
                 loadStats();
             }).catch(function (err) {
