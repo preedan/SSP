@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='24' font-size='24' font-family='sans-serif' fill='%23267bb5'%3ESSP%3C/text%3E%3C/svg%3E">
-    <title>Schere, Stein, Papier</title>
+    <title>HandClash</title>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body, html {
@@ -36,15 +36,12 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-        h1 {
-            font-size: 1.5em;
-            margin: 0 0 20px 0;
-        }
-        img {
+        .logo-img {
             width: 100%;
-            max-width: 160px;
+            max-width: 320px;
             height: auto;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            display: block;
         }
         .btn {
             width: 100%;
@@ -77,8 +74,7 @@
 <body>
     <div id="app-nav"></div>
     <div class="container">
-        <h1>Schere, Stein, Papier</h1>
-        <img src="Startpage_picture.JPG" alt="Schere, Stein, Papier">
+        <img src="HandClash.JPG" alt="" class="logo-img">
         <a href="ermitteln.html" class="btn">Variante wählen</a>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
