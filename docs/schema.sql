@@ -73,7 +73,7 @@ create table public.rounds (
   id uuid primary key default gen_random_uuid(),
   session_id uuid not null references public.sessions(id) on delete cascade,
   variant_id uuid not null references public.variants(id),
-  winner_player_id uuid references public.players(id),
+  loser_player_id uuid references public.players(id),
   symbol text check (symbol in ('rock','paper','scissors') or symbol is null),
   note text,
   played_at timestamptz not null default now()
@@ -87,7 +87,7 @@ create index idx_players_team on public.players(team_id);
 create index idx_sessions_team on public.sessions(team_id);
 create index idx_rounds_session on public.rounds(session_id);
 create index idx_rounds_variant on public.rounds(variant_id);
-create index idx_rounds_winner on public.rounds(winner_player_id);
+create index idx_rounds_loser on public.rounds(loser_player_id);
 
 
 -- =========================================
@@ -100,6 +100,6 @@ create index idx_rounds_winner on public.rounds(winner_player_id);
 --   created_at timestamptz not null default now()
 -- );
 
--- 2) players.user_id: welcher Auth-User ist dieser Spieler (für Runden/Gewinner)
+-- 2) players.user_id: welcher Auth-User ist dieser Spieler (für Runden/Verlierer)
 -- alter table public.players add column if not exists user_id uuid references auth.users(id) on delete cascade;
 -- create unique index if not exists players_team_user_key on public.players(team_id, user_id);

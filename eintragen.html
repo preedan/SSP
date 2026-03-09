@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sieger eintragen – Schere, Stein, Papier</title>
+    <title>Eintragen – Schere, Stein, Papier</title>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body, html { min-height: 100%; margin: 0; display: flex; flex-direction: column; font-family: 'Baloo 2', cursive; background: #f0f0f0; }
@@ -29,10 +29,10 @@
     <div id="app-nav"></div>
     <div class="wrap">
         <div class="container">
-            <h1>Sieger eintragen</h1>
+            <h1>Verlierer eintragen</h1>
             <div id="message" class="message" style="display:none;"></div>
             <div id="formBox" style="display:none;">
-                <form id="winnerForm">
+                <form id="loserForm">
                     <div class="form-group">
                         <label>Team</label>
                         <input type="text" id="teamName" readonly>
@@ -44,13 +44,13 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Sieger</label>
-                        <select id="winner" required>
+                        <label>Verlierer</label>
+                        <select id="loser" required>
                             <option value="">– Bitte wählen –</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Symbol des Siegers</label>
+                        <label>Symbol des Verlierers</label>
                         <select id="symbol">
                             <option value="">– optional –</option>
                             <option value="scissors">Schere</option>
@@ -73,9 +73,9 @@
             var formBox = document.getElementById("formBox");
             var teamNameEl = document.getElementById("teamName");
             var variantSelect = document.getElementById("variant");
-            var winnerSelect = document.getElementById("winner");
+            var loserSelect = document.getElementById("loser");
             var symbolSelect = document.getElementById("symbol");
-            var form = document.getElementById("winnerForm");
+            var form = document.getElementById("loserForm");
             var submitBtn = document.getElementById("submitBtn");
 
             function getCurrentTeam() {
@@ -92,7 +92,7 @@
 
             getSupabase().auth.getSession().then(function (r) {
                 if (!r.data.session) {
-                    window.location.href = "login.html?redirect=" + encodeURIComponent("sieger-eintragen.html");
+                    window.location.href = "login.html?redirect=" + encodeURIComponent("eintragen.html");
                     return;
                 }
                 var current = getCurrentTeam();
@@ -114,7 +114,7 @@
                         (varRes.data || []).map(function (v) {
                             return "<option value=\"" + v.id + "\">" + (v.name || "Unbekannt").replace(/</g, "&lt;").replace(/"/g, "&quot;") + "</option>";
                         }).join("");
-                    winnerSelect.innerHTML = "<option value=''>– Bitte wählen –</option>" +
+                    loserSelect.innerHTML = "<option value=''>– Bitte wählen –</option>" +
                         (playRes.data || []).map(function (p) {
                             return "<option value=\"" + p.id + "\">" + (p.name || "Unbekannt").replace(/</g, "&lt;").replace(/"/g, "&quot;") + "</option>";
                         }).join("");
@@ -131,27 +131,27 @@
                     return;
                 }
                 var variantId = variantSelect.value;
-                var winnerId = winnerSelect.value;
+                var loserId = loserSelect.value;
                 var symbol = symbolSelect.value || null;
                 if (!variantId) {
                     showMessage("Bitte eine Variante wählen.", "error");
                     return;
                 }
-                if (!winnerId) {
-                    showMessage("Bitte einen Sieger wählen.", "error");
+                if (!loserId) {
+                    showMessage("Bitte einen Verlierer wählen.", "error");
                     return;
                 }
                 submitBtn.disabled = true;
-                getSupabase().rpc("add_winner", {
+                getSupabase().rpc("add_loser", {
                     p_team_id: current.id,
                     p_variant_id: variantId,
-                    p_winner_player_id: winnerId,
+                    p_loser_player_id: loserId,
                     p_symbol: symbol
                 }).then(function (r) {
                     if (r.error) throw r.error;
-                    showMessage("Sieger wurde eingetragen.", "success");
+                    showMessage("Verlierer wurde eingetragen.", "success");
                     variantSelect.value = "";
-                    winnerSelect.value = "";
+                    loserSelect.value = "";
                     symbolSelect.value = "";
                 }).catch(function (err) {
                     showMessage(err.message || "Eintragen fehlgeschlagen.", "error");

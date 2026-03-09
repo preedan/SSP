@@ -197,7 +197,7 @@
                                 teamListContent.querySelectorAll(".set-current-team-btn").forEach(function (btn) {
                                     btn.addEventListener("click", function () {
                                         setCurrentTeam(this.getAttribute("data-team-id"), this.getAttribute("data-team-name"));
-                                        showMessage("Aktuelles Team gesetzt. Sieger kannst du auf der Startseite eintragen.", "info");
+                                        showMessage("Aktuelles Team gesetzt. Verlierer kannst du auf der Startseite eintragen.", "info");
                                         loadTeams();
                                     });
                                 });

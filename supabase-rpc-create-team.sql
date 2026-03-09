@@ -112,10 +112,10 @@ GRANT EXECUTE ON FUNCTION public.get_or_create_today_session(uuid) TO anon;
 GRANT EXECUTE ON FUNCTION public.get_or_create_today_session(uuid) TO authenticated;
 
 -- ============================================================
--- RPC: add_winner – Sieger-Runde eintragen (Team, Variante, Spieler, Symbol)
+-- RPC: add_loser – Verlierer-Runde eintragen (Team, Variante, Spieler, Symbol)
 -- ============================================================
 
-CREATE OR REPLACE FUNCTION public.add_winner(p_team_id uuid, p_variant_id uuid, p_winner_player_id uuid, p_symbol text)
+CREATE OR REPLACE FUNCTION public.add_loser(p_team_id uuid, p_variant_id uuid, p_loser_player_id uuid, p_symbol text)
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -135,7 +135,7 @@ BEGIN
   IF p_symbol IS NOT NULL AND p_symbol NOT IN ('rock','paper','scissors') THEN
     RAISE EXCEPTION 'Symbol muss rock, paper oder scissors sein';
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM public.players WHERE id = p_winner_player_id AND team_id = p_team_id) THEN
+  IF NOT EXISTS (SELECT 1 FROM public.players WHERE id = p_loser_player_id AND team_id = p_team_id) THEN
     RAISE EXCEPTION 'Spieler gehört nicht zu diesem Team';
   END IF;
   IF NOT EXISTS (SELECT 1 FROM public.variants WHERE id = p_variant_id AND is_active = true) THEN
@@ -144,10 +144,10 @@ BEGIN
 
   sid := public.get_or_create_today_session(p_team_id);
 
-  INSERT INTO public.rounds (session_id, variant_id, winner_player_id, symbol, played_at)
-  VALUES (sid, p_variant_id, p_winner_player_id, p_symbol, now());
+  INSERT INTO public.rounds (session_id, variant_id, loser_player_id, symbol, played_at)
+  VALUES (sid, p_variant_id, p_loser_player_id, p_symbol, now());
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.add_winner(uuid, uuid, uuid, text) TO anon;
-GRANT EXECUTE ON FUNCTION public.add_winner(uuid, uuid, uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.add_loser(uuid, uuid, uuid, text) TO anon;
+GRANT EXECUTE ON FUNCTION public.add_loser(uuid, uuid, uuid, text) TO authenticated;
