@@ -36,6 +36,11 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
+        .greeting {
+            font-size: 1.1em;
+            color: #333;
+            margin: 0 0 16px 0;
+        }
         .logo-img {
             width: 100%;
             max-width: 320px;
@@ -74,11 +79,53 @@
 <body>
     <div id="app-nav"></div>
     <div class="container">
+        <p id="greeting" class="greeting" style="display:none;"></p>
         <img src="HandClash.JPG" alt="" class="logo-img">
-        <a href="ermitteln.html" class="btn">Variante wählen</a>
+        <a href="login.html?redirect=index.html" class="btn" id="btnAnmelden" style="display:none;">Anmelden</a>
+        <a href="ermitteln.html" class="btn" id="btnVariante" style="display:none;">Variante wählen</a>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="nav.js"></script>
+    <script>
+        (function () {
+            var btnAnmelden = document.getElementById("btnAnmelden");
+            var btnVariante = document.getElementById("btnVariante");
+            var greetingEl = document.getElementById("greeting");
+            function updateButtons() {
+                if (typeof getSupabase !== "function") {
+                    btnAnmelden.style.display = "block";
+                    greetingEl.style.display = "none";
+                    return;
+                }
+                getSupabase().auth.getSession().then(function (r) {
+                    if (r.data.session) {
+                        btnVariante.style.display = "block";
+                        btnAnmelden.style.display = "none";
+                        getSupabase().from("profiles").select("display_name").eq("user_id", r.data.session.user.id).maybeSingle().then(function (res) {
+                            var name = (res.data && res.data.display_name && res.data.display_name.trim()) ? res.data.display_name.trim() : "";
+                            greetingEl.textContent = name ? "Hallo, " + name + "!" : "Hallo!";
+                            greetingEl.style.display = "block";
+                        }).catch(function () {
+                            greetingEl.textContent = "Hallo!";
+                            greetingEl.style.display = "block";
+                        });
+                    } else {
+                        greetingEl.style.display = "none";
+                        btnAnmelden.style.display = "block";
+                        btnVariante.style.display = "none";
+                    }
+                }).catch(function () {
+                    greetingEl.style.display = "none";
+                    btnAnmelden.style.display = "block";
+                    btnVariante.style.display = "none";
+                });
+            }
+            updateButtons();
+            if (typeof getSupabase === "function") {
+                getSupabase().auth.onAuthStateChange(updateButtons);
+            }
+        })();
+    </script>
 </body>
 </html>
