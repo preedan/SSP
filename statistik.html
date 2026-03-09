@@ -134,6 +134,13 @@
                             myTeams.map(function (t) { return "<option value=\"" + t.id + "\">" + (t.name || "").replace(/</g, "&lt;") + "</option>"; }).join("");
                         filterVariant.innerHTML = "<option value=''>Alle Varianten</option>" +
                             variants.map(function (v) { return "<option value=\"" + v.id + "\">" + (v.name || "").replace(/</g, "&lt;") + "</option>"; }).join("");
+                        try {
+                            var s = localStorage.getItem("ssp_current_team");
+                            var current = s ? JSON.parse(s) : null;
+                            if (current && current.id && myTeamIds.indexOf(current.id) !== -1) {
+                                filterTeam.value = current.id;
+                            }
+                        } catch (e) {}
                     });
                 });
             }

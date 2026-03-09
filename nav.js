@@ -109,8 +109,7 @@
         "#app-bottom-bar { font-family: 'Baloo 2', cursive; position: fixed; bottom: 0; left: 0; right: 0; background: #267bb5; color: #fff; padding: 10px 16px; box-shadow: 0 -1px 3px rgba(0,0,0,0.1); z-index: 900; }",
         "#app-bottom-bar a { color: #fff; text-decoration: none; display: block; text-align: center; font-size: 0.95em; min-height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 6px; }",
         "#app-bottom-bar a:hover { background: rgba(255,255,255,0.15); margin: -10px -16px; padding: 10px 16px; }",
-        "#app-bottom-bar .app-bottom-bar-label { opacity: 0.9; font-size: 0.85em; }",
-        "#app-bottom-bar .app-bottom-bar-team { font-weight: 700; }"
+        "#app-bottom-bar .app-bottom-bar-arrow { opacity: 0.8; font-size: 0.9em; }"
     ].join("\n");
     document.head.appendChild(style);
 
@@ -137,8 +136,9 @@
             document.body.appendChild(bar);
         }
         var current = getCurrentTeam();
-        var teamName = (current && current.name) ? escapeHtml(current.name) : "Kein Team gewählt";
-        bar.innerHTML = "<a href=\"teams.html\" title=\"Meine Teams\"><span class=\"app-bottom-bar-label\">Aktuelles Team:</span> <span class=\"app-bottom-bar-team\">" + teamName + "</span></a>";
+        var teamName = (current && current.name) ? escapeHtml(current.name) : "Team wählen";
+        var title = (current && current.name) ? "Ausgewähltes Team – Klick öffnet Meine Teams" : "Klick öffnet Meine Teams";
+        bar.innerHTML = "<a href=\"teams.html\" title=\"" + title + "\"><span>" + teamName + "</span><span class=\"app-bottom-bar-arrow\" aria-hidden=\"true\">›</span></a>";
     }
 
     function updateNav() {

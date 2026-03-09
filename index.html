@@ -38,18 +38,7 @@
         }
         h1 {
             font-size: 1.5em;
-            margin: 0 0 8px 0;
-        }
-        .team-name {
-            font-size: 1.25em;
-            font-weight: 700;
-            color: #267bb5;
-            margin-bottom: 20px;
-            min-height: 1.5em;
-        }
-        .team-name.empty {
-            color: #999;
-            font-weight: 400;
+            margin: 0 0 20px 0;
         }
         img {
             width: 100%;
@@ -89,35 +78,11 @@
     <div id="app-nav"></div>
     <div class="container">
         <h1>Schere, Stein, Papier</h1>
-        <p id="currentTeamName" class="team-name empty">Kein Team gewählt</p>
         <img src="Startpage_picture.JPG" alt="Schere, Stein, Papier">
         <a href="ermitteln.html" class="btn">Variante wählen</a>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="nav.js"></script>
-    <script>
-        (function () {
-            var el = document.getElementById("currentTeamName");
-            function updateTeamDisplay() {
-                try {
-                    var s = localStorage.getItem("ssp_current_team");
-                    var current = s ? JSON.parse(s) : null;
-                    if (current && current.name) {
-                        el.textContent = current.name;
-                        el.classList.remove("empty");
-                    } else {
-                        el.textContent = "Kein Team gewählt";
-                        el.classList.add("empty");
-                    }
-                } catch (e) {
-                    el.textContent = "Kein Team gewählt";
-                    el.classList.add("empty");
-                }
-            }
-            updateTeamDisplay();
-            window.addEventListener("storage", updateTeamDisplay);
-        })();
-    </script>
 </body>
 </html>
