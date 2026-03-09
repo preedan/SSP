@@ -105,19 +105,53 @@
         ".app-nav-dropdown-item:hover { background: #f0f4f8; }",
         ".app-nav-dropdown-btn { color: #c33; }",
         ".app-nav-dropdown-btn:hover { background: #fee; }",
-        "@media (max-width: 400px) { #app-nav.app-nav { padding: 8px 12px; } #app-nav .app-nav-link { padding: 8px 10px; font-size: 0.95em; } .app-nav-profile-circle { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 1.1em; } }"
+        "@media (max-width: 400px) { #app-nav.app-nav { padding: 8px 12px; } #app-nav .app-nav-link { padding: 8px 10px; font-size: 0.95em; } .app-nav-profile-circle { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 1.1em; } }",
+        "#app-bottom-bar { font-family: 'Baloo 2', cursive; position: fixed; bottom: 0; left: 0; right: 0; background: #267bb5; color: #fff; padding: 10px 16px; box-shadow: 0 -1px 3px rgba(0,0,0,0.1); z-index: 900; }",
+        "#app-bottom-bar a { color: #fff; text-decoration: none; display: block; text-align: center; font-size: 0.95em; min-height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 6px; }",
+        "#app-bottom-bar a:hover { background: rgba(255,255,255,0.15); margin: -10px -16px; padding: 10px 16px; }",
+        "#app-bottom-bar .app-bottom-bar-label { opacity: 0.9; font-size: 0.85em; }",
+        "#app-bottom-bar .app-bottom-bar-team { font-weight: 700; }"
     ].join("\n");
     document.head.appendChild(style);
+
+    function getCurrentTeam() {
+        try {
+            var s = localStorage.getItem("ssp_current_team");
+            return s ? JSON.parse(s) : null;
+        } catch (e) { return null; }
+    }
+
+    function updateBottomBar() {
+        var page = getCurrentPage();
+        if (page !== "start" && page !== "statistik") {
+            var existing = document.getElementById("app-bottom-bar");
+            if (existing) existing.remove();
+            document.body.style.paddingBottom = "";
+            return;
+        }
+        document.body.style.paddingBottom = "56px";
+        var bar = document.getElementById("app-bottom-bar");
+        if (!bar) {
+            bar = document.createElement("div");
+            bar.id = "app-bottom-bar";
+            document.body.appendChild(bar);
+        }
+        var current = getCurrentTeam();
+        var teamName = (current && current.name) ? escapeHtml(current.name) : "Kein Team gewählt";
+        bar.innerHTML = "<a href=\"teams.html\" title=\"Meine Teams\"><span class=\"app-bottom-bar-label\">Aktuelles Team:</span> <span class=\"app-bottom-bar-team\">" + teamName + "</span></a>";
+    }
 
     function updateNav() {
         if (typeof getSupabase !== "function") {
             render(null);
+            updateBottomBar();
             return;
         }
         getSupabase().auth.getSession().then(function (r) {
             var session = r.data.session;
             if (!session) {
                 render(null);
+                updateBottomBar();
                 return;
             }
             getSupabase().from("profiles").select("display_name").eq("user_id", session.user.id).maybeSingle().then(function (res) {
@@ -125,10 +159,13 @@
                 render(session, displayName, session.user.email);
             }).catch(function () {
                 render(session, "", session.user.email);
+            }).finally(function () {
+                updateBottomBar();
             });
         });
     }
 
     getSupabase().auth.onAuthStateChange(function () { updateNav(); });
     updateNav();
+    window.addEventListener("storage", function () { updateBottomBar(); });
 })();
