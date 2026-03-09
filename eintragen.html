@@ -41,10 +41,6 @@
             <div id="formBox" style="display:none;">
                 <form id="loserForm">
                     <div class="form-group">
-                        <label>Team</label>
-                        <input type="text" id="teamName" readonly>
-                    </div>
-                    <div class="form-group">
                         <label>Variante</label>
                         <select id="variant" required>
                             <option value="">– Bitte wählen –</option>
@@ -77,7 +73,6 @@
         (function () {
             var messageEl = document.getElementById("message");
             var formBox = document.getElementById("formBox");
-            var teamNameEl = document.getElementById("teamName");
             var variantSelect = document.getElementById("variant");
             var loserSelect = document.getElementById("loser");
             var symbolSelect = document.getElementById("symbol");
@@ -106,7 +101,6 @@
                     showMessage("Bitte wähle zuerst auf „Meine Teams“ ein Team als „Heute dieses Team“.", "error");
                     return;
                 }
-                teamNameEl.value = current.name || current.id;
                 formBox.style.display = "block";
                 return Promise.all([
                     getSupabase().from("variants").select("id, name").eq("is_active", true).order("name"),

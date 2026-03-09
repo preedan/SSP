@@ -15,6 +15,7 @@
         if (path.indexOf("ermitteln") !== -1) return "ermitteln";
         if (path.indexOf("teams.html") !== -1 && path.indexOf("team-beitreten") === -1) return "teams";
         if (path.indexOf("statistik") !== -1) return "statistik";
+        if (path.indexOf("eintragen") !== -1) return "eintragen";
         return null;
     }
 
@@ -122,7 +123,7 @@
 
     function updateBottomBar() {
         var page = getCurrentPage();
-        if (page !== "start" && page !== "statistik") {
+        if (page !== "start" && page !== "statistik" && page !== "ermitteln" && page !== "eintragen") {
             var existing = document.getElementById("app-bottom-bar");
             if (existing) existing.remove();
             document.body.style.paddingBottom = "";
