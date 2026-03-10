@@ -133,7 +133,6 @@
         </div>
         <div id="rankingSection" class="home-section" style="display:none;">
             <p class="home-section-title">🏆 Niederlagen heute</p>
-            <p class="home-section-value" style="font-size:0.85em; font-weight:400; color:#666;">(wenigste oben)</p>
             <ul id="rankingList" class="ranking-list"></ul>
         </div>
         <a href="login.html?redirect=index.html" class="btn" id="btnAnmelden" style="display:none;">Anmelden</a>
@@ -205,31 +204,32 @@
                     return;
                 }
                 var today = new Date().toISOString().slice(0, 10);
-                getSupabase().from("sessions").select("id").eq("team_id", team.id).then(function (sRes) {
-                    var sessionIds = (sRes.data || []).map(function (s) { return s.id; });
-                    if (sessionIds.length === 0) {
+                getSupabase().from("players").select("id, name").eq("team_id", team.id).order("name").then(function (playersRes) {
+                    var allPlayers = playersRes.data || [];
+                    if (allPlayers.length === 0) {
                         renderRanking([]);
                         return;
                     }
-                    getSupabase().from("rounds").select("loser_player_id, played_at").in("session_id", sessionIds).not("loser_player_id", "is", null).then(function (rRes) {
-                        var rounds = (rRes.data || []).filter(function (r) { return r.played_at && r.played_at.slice(0, 10) === today; });
-                        var byPlayer = {};
-                        rounds.forEach(function (r) {
-                            var id = r.loser_player_id;
-                            byPlayer[id] = (byPlayer[id] || 0) + 1;
-                        });
-                        var playerIds = Object.keys(byPlayer);
-                        if (playerIds.length === 0) {
-                            renderRanking([]);
+                    getSupabase().from("sessions").select("id").eq("team_id", team.id).then(function (sRes) {
+                        var sessionIds = (sRes.data || []).map(function (s) { return s.id; });
+                        if (sessionIds.length === 0) {
+                            var items = allPlayers.map(function (p) {
+                                return { name: (p.name && p.name.trim()) ? p.name.trim() : "?", defeats: 0 };
+                            }).sort(function (a, b) { return a.defeats - b.defeats; });
+                            renderRanking(items);
                             return;
                         }
-                        getSupabase().from("players").select("id, name").in("id", playerIds).then(function (pRes) {
-                            var names = {};
-                            (pRes.data || []).forEach(function (p) {
-                                names[p.id] = (p.name && p.name.trim()) ? p.name.trim() : "?";
+                        getSupabase().from("rounds").select("loser_player_id, played_at").in("session_id", sessionIds).not("loser_player_id", "is", null).then(function (rRes) {
+                            var rounds = (rRes.data || []).filter(function (r) { return r.played_at && r.played_at.slice(0, 10) === today; });
+                            var byPlayer = {};
+                            rounds.forEach(function (r) {
+                                var id = r.loser_player_id;
+                                byPlayer[id] = (byPlayer[id] || 0) + 1;
                             });
-                            var items = playerIds.map(function (id) {
-                                return { name: names[id] || "?", defeats: byPlayer[id] };
+                            var items = allPlayers.map(function (p) {
+                                var name = (p.name && p.name.trim()) ? p.name.trim() : "?";
+                                var defeats = byPlayer[p.id] || 0;
+                                return { name: name, defeats: defeats };
                             }).sort(function (a, b) { return a.defeats - b.defeats; });
                             renderRanking(items);
                         }).catch(function () { renderRanking([]); });
