@@ -32,11 +32,13 @@
         body > .container {
             flex: 1;
             width: 100%;
+            min-height: 0;
             box-sizing: border-box;
             padding: 16px;
             display: flex;
             justify-content: center;
             align-items: flex-start;
+            overflow-y: auto;
         }
         .container {
             display: flex;
@@ -62,6 +64,11 @@
             border-radius: var(--radius);
             padding: 16px;
             box-shadow: var(--shadow-card);
+        }
+        .home-section.sticky-top {
+            position: sticky;
+            top: 0;
+            z-index: 1;
         }
         .home-section-title {
             font-size: 0.8em;
@@ -203,11 +210,11 @@
     <div id="app-nav"></div>
     <div class="container">
         <div class="content-inner">
-            <!-- Spielvariante: Control + Result -->
-            <section class="home-section" aria-labelledby="section-variante-heading">
-                <p id="section-variante-heading" class="home-section-title">Spielvariante</p>
+            <!-- Spiel starten: Variante ermitteln (oben fixiert) -->
+            <section class="home-section sticky-top" aria-labelledby="section-spiel-heading">
+                <p id="section-spiel-heading" class="home-section-title">🎲 Spiel starten</p>
                 <div id="variantControlIdle" class="variant-control-state is-active">
-                    <button type="button" id="btnErmitteln" class="btn btn-play" disabled>🎲 Variante ermitteln</button>
+                    <button type="button" id="btnErmitteln" class="btn btn-play" disabled>Variante ermitteln</button>
                 </div>
                 <div id="variantControlLoading" class="variant-control-state">
                     <div class="slot-wrap">
@@ -231,7 +238,7 @@
 
             <!-- Runde abschließen: Verlierer eintragen (immer sichtbar) -->
             <section class="home-section" aria-labelledby="section-runde-heading">
-                <p id="section-runde-heading" class="home-section-title">Runde abschließen</p>
+                <p id="section-runde-heading" class="home-section-title">☠ Runde abschließen</p>
                 <a href="eintragen.html" class="btn">Verlierer eintragen</a>
             </section>
         </div>
