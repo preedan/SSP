@@ -107,29 +107,44 @@
             opacity: 0.7;
             cursor: not-allowed;
         }
-        .spinner-wrap {
+        .slot-wrap {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            padding: 20px 0;
+            gap: 8px;
+            padding: 24px 16px;
+            min-height: 100px;
         }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(38, 123, 181, 0.2);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .spinner-text {
-            font-size: 1em;
+        .slot-label {
+            font-size: 0.85em;
             color: var(--text-muted);
             margin: 0;
+        }
+        .slot-name {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: var(--primary);
+            text-align: center;
+            min-height: 1.4em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            background: rgba(38, 123, 181, 0.08);
+            transition: transform 0.05s ease-out;
+        }
+        .slot-name.tick {
+            transform: scale(1.03);
+        }
+        .slot-name.landed {
+            animation: slotLanded 0.5s ease-out;
+        }
+        @keyframes slotLanded {
+            0% { transform: scale(1.15); }
+            70% { transform: scale(1.02); }
+            100% { transform: scale(1); }
         }
         .variant-result-card .variant-title {
             font-size: 1.15em;
@@ -169,6 +184,19 @@
         .variant-result-section.has-result {
             display: block;
         }
+        .variant-result-card {
+            animation: resultReveal 0.45s ease-out;
+        }
+        @keyframes resultReveal {
+            0% { opacity: 0; transform: scale(0.94); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .btn.btn-play {
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
+        }
+        .btn.btn-play:active {
+            transform: scale(0.97);
+        }
     </style>
 </head>
 <body>
@@ -179,12 +207,12 @@
             <section class="home-section" aria-labelledby="section-variante-heading">
                 <p id="section-variante-heading" class="home-section-title">Spielvariante</p>
                 <div id="variantControlIdle" class="variant-control-state is-active">
-                    <button type="button" id="btnErmitteln" class="btn" disabled>Variante ermitteln</button>
+                    <button type="button" id="btnErmitteln" class="btn btn-play" disabled>🎲 Variante ermitteln</button>
                 </div>
                 <div id="variantControlLoading" class="variant-control-state">
-                    <div class="spinner-wrap">
-                        <div class="spinner" aria-hidden="true"></div>
-                        <p class="spinner-text">Variante wird ermittelt…</p>
+                    <div class="slot-wrap">
+                        <p class="slot-label">Variante wird ermittelt…</p>
+                        <div id="slotName" class="slot-name" aria-live="polite"></div>
                     </div>
                 </div>
                 <div id="variantResultSection" class="variant-result-section">
@@ -266,6 +294,8 @@
                 return div.innerHTML;
             }
 
+            var slotNameEl = document.getElementById("slotName");
+
             function showSelectedVariant(index) {
                 var variant = contentList[index];
                 variantNameEl.textContent = variant.text || "";
@@ -286,16 +316,46 @@
                 rotationInProgress = false;
             }
 
+            function runSlot(targetIndex) {
+                var n = contentList.length;
+                if (n === 0) return;
+                var delays = [];
+                var i;
+                for (i = 0; i < 18; i++) delays.push(70);
+                delays.push(120, 180, 260, 380, 520);
+                var slotIndex = ((targetIndex - (delays.length - 1)) % n + n) % n;
+                var tick = 0;
+
+                function next() {
+                    if (tick >= delays.length) {
+                        slotNameEl.classList.remove("tick");
+                        slotNameEl.classList.add("landed");
+                        setTimeout(function () {
+                            showSelectedVariant(targetIndex);
+                        }, 480);
+                        return;
+                    }
+                    slotNameEl.textContent = contentList[slotIndex].text || "?";
+                    slotNameEl.classList.remove("landed");
+                    slotNameEl.classList.add("tick");
+                    setTimeout(function () { slotNameEl.classList.remove("tick"); }, 50);
+                    slotIndex = (slotIndex + 1) % n;
+                    tick++;
+                    setTimeout(next, delays[tick - 1]);
+                }
+                next();
+            }
+
             function startVariantSelection() {
                 if (rotationInProgress || contentList.length === 0) return;
                 rotationInProgress = true;
                 setState(false, true, false);
                 btnErmitteln.disabled = true;
+                slotNameEl.textContent = "…";
+                slotNameEl.classList.remove("landed");
 
-                setTimeout(function () {
-                    var idx = Math.floor(Math.random() * contentList.length);
-                    showSelectedVariant(idx);
-                }, 2500);
+                var targetIndex = Math.floor(Math.random() * contentList.length);
+                runSlot(targetIndex);
             }
 
             btnErmitteln.addEventListener("click", startVariantSelection);
