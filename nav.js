@@ -107,10 +107,12 @@
         ".app-nav-dropdown-btn { color: #c33; }",
         ".app-nav-dropdown-btn:hover { background: #fee; }",
         "@media (max-width: 400px) { #app-nav.app-nav { padding: 8px 12px; } #app-nav .app-nav-link { padding: 8px 10px; font-size: 0.95em; } .app-nav-profile-circle { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 1.1em; } }",
-        "#app-bottom-bar { font-family: 'Baloo 2', cursive; position: fixed; bottom: 0; left: 0; right: 0; background: #267bb5; color: #fff; padding: 10px 16px; box-shadow: 0 -1px 3px rgba(0,0,0,0.1); z-index: 900; }",
-        "#app-bottom-bar a { color: #fff; text-decoration: none; display: block; text-align: center; font-size: 0.95em; min-height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 6px; }",
-        "#app-bottom-bar a:hover { background: rgba(255,255,255,0.15); margin: -10px -16px; padding: 10px 16px; }",
-        "#app-bottom-bar .app-bottom-bar-arrow { opacity: 0.8; font-size: 0.9em; }"
+        "#app-bottom-bar { font-family: 'Baloo 2', cursive; position: fixed; bottom: 0; left: 0; right: 0; background: #267bb5; color: #fff; padding: 12px 16px; box-shadow: 0 -1px 3px rgba(0,0,0,0.1); z-index: 900; }",
+        "#app-bottom-bar .app-bottom-bar-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 44px; }",
+        "#app-bottom-bar .app-bottom-bar-label { font-size: 0.75em; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.03em; }",
+        "#app-bottom-bar .app-bottom-bar-value { font-size: 1.05em; font-weight: 700; }",
+        "#app-bottom-bar .app-bottom-bar-btn { color: #fff; text-decoration: none; padding: 8px 20px; border: 2px solid rgba(255,255,255,0.7); border-radius: 8px; font-size: 1em; font-weight: 700; display: inline-block; box-sizing: border-box; }",
+        "#app-bottom-bar .app-bottom-bar-btn:hover { background: rgba(255,255,255,0.2); border-color: #fff; }"
     ].join("\n");
     document.head.appendChild(style);
 
@@ -137,9 +139,15 @@
             document.body.appendChild(bar);
         }
         var current = getCurrentTeam();
-        var teamName = (current && current.name) ? escapeHtml(current.name) : "Team wählen";
-        var title = (current && current.name) ? "Ausgewähltes Team – Klick öffnet Meine Teams" : "Klick öffnet Meine Teams";
-        bar.innerHTML = "<a href=\"teams.html\" title=\"" + title + "\"><span>" + teamName + "</span><span class=\"app-bottom-bar-arrow\" aria-hidden=\"true\">›</span></a>";
+        var hasTeam = current && current.name;
+        var label = "<span class=\"app-bottom-bar-label\">Aktuelles Team</span>";
+        var valueHtml;
+        if (hasTeam) {
+            valueHtml = "<span class=\"app-bottom-bar-value\">" + escapeHtml(current.name) + "</span>";
+        } else {
+            valueHtml = "<a href=\"teams.html\" class=\"app-bottom-bar-btn\" title=\"Team in Meine Teams wählen\">Team wählen</a>";
+        }
+        bar.innerHTML = "<div class=\"app-bottom-bar-inner\">" + label + valueHtml + "</div>";
     }
 
     function updateNav() {

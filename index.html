@@ -36,10 +36,22 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
+        .greeting-wrap {
+            width: 100%;
+            margin: -24px -20px 20px -20px;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #e8f2fc 0%, #f0f7ff 100%);
+            border-radius: 12px 12px 0 0;
+            border-bottom: 1px solid rgba(38, 123, 181, 0.15);
+        }
         .greeting {
-            font-size: 1.1em;
-            color: #333;
-            margin: 0 0 16px 0;
+            font-size: 1.15em;
+            color: #1a5d8b;
+            margin: 0;
+            font-weight: 700;
+        }
+        .greeting .greeting-name {
+            color: #267bb5;
         }
         .logo-img {
             width: 100%;
@@ -79,7 +91,9 @@
 <body>
     <div id="app-nav"></div>
     <div class="container">
-        <p id="greeting" class="greeting" style="display:none;"></p>
+        <div id="greetingWrap" class="greeting-wrap" style="display:none;">
+            <p id="greeting" class="greeting"></p>
+        </div>
         <img src="HandClash.png" alt="" class="logo-img">
         <a href="login.html?redirect=index.html" class="btn" id="btnAnmelden" style="display:none;">Anmelden</a>
         <a href="ermitteln.html" class="btn" id="btnVariante" style="display:none;">Variante wählen</a>
@@ -92,10 +106,17 @@
             var btnAnmelden = document.getElementById("btnAnmelden");
             var btnVariante = document.getElementById("btnVariante");
             var greetingEl = document.getElementById("greeting");
+            var greetingWrap = document.getElementById("greetingWrap");
+            function escapeHtml(s) {
+                if (!s) return "";
+                var div = document.createElement("div");
+                div.textContent = s;
+                return div.innerHTML;
+            }
             function updateButtons() {
                 if (typeof getSupabase !== "function") {
                     btnAnmelden.style.display = "block";
-                    greetingEl.style.display = "none";
+                    greetingWrap.style.display = "none";
                     return;
                 }
                 getSupabase().auth.getSession().then(function (r) {
@@ -104,19 +125,19 @@
                         btnAnmelden.style.display = "none";
                         getSupabase().from("profiles").select("display_name").eq("user_id", r.data.session.user.id).maybeSingle().then(function (res) {
                             var name = (res.data && res.data.display_name && res.data.display_name.trim()) ? res.data.display_name.trim() : "";
-                            greetingEl.textContent = name ? "Hallo, " + name + "!" : "Hallo!";
-                            greetingEl.style.display = "block";
+                            greetingEl.innerHTML = name ? "Hallo, <span class=\"greeting-name\">" + escapeHtml(name) + "</span>!" : "Hallo!";
+                            greetingWrap.style.display = "block";
                         }).catch(function () {
-                            greetingEl.textContent = "Hallo!";
-                            greetingEl.style.display = "block";
+                            greetingEl.innerHTML = "Hallo!";
+                            greetingWrap.style.display = "block";
                         });
                     } else {
-                        greetingEl.style.display = "none";
+                        greetingWrap.style.display = "none";
                         btnAnmelden.style.display = "block";
                         btnVariante.style.display = "none";
                     }
                 }).catch(function () {
-                    greetingEl.style.display = "none";
+                    greetingWrap.style.display = "none";
                     btnAnmelden.style.display = "block";
                     btnVariante.style.display = "none";
                 });
