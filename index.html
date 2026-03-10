@@ -12,34 +12,32 @@
             margin: 0;
             display: flex;
             flex-direction: column;
-            text-align: center;
             font-family: 'Baloo 2', cursive;
             background-color: #f8fbff;
         }
         body > .container {
             flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             width: 100%;
             box-sizing: border-box;
             padding: 16px;
+            display: flex;
+            justify-content: center;
         }
         .container {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: stretch;
             max-width: 400px;
             width: 100%;
             padding: 24px 20px;
             background: #ffffff;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            text-align: left;
         }
         .greeting-wrap {
             width: 100%;
-            margin: 0 0 16px 0;
-            text-align: left;
+            margin: 0 0 20px 0;
         }
         .greeting {
             font-size: 1.15em;
@@ -55,15 +53,46 @@
             color: #555;
             margin: 0;
         }
-        .logo-img {
-            width: 100%;
-            max-width: 320px;
-            height: auto;
+        .home-section {
             margin-bottom: 20px;
-            display: block;
+        }
+        .home-section-title {
+            font-size: 0.9em;
+            color: #666;
+            margin: 0 0 6px 0;
+        }
+        .home-section-value {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #333;
+        }
+        .ranking-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .ranking-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 1em;
+        }
+        .ranking-list li:last-child {
+            border-bottom: none;
+        }
+        .ranking-list .rank-icon {
+            margin-right: 8px;
+        }
+        .ranking-list .rank-name {
+            flex: 1;
+        }
+        .ranking-list .rank-count {
+            font-weight: 700;
+            color: #333;
         }
         .btn {
-            width: 100%;
             min-height: 48px;
             box-sizing: border-box;
             text-decoration: none;
@@ -78,6 +107,7 @@
             font-family: inherit;
             font-size: 1.1em;
             font-weight: 700;
+            margin-top: 8px;
         }
         .btn:hover {
             background-color: #1a5d8b;
@@ -97,7 +127,15 @@
             <p id="greeting" class="greeting"></p>
             <p id="greetingSub" class="greeting-sub">Bereit für eine Runde?</p>
         </div>
-        <img src="HandClash.png" alt="" class="logo-img">
+        <div id="teamSection" class="home-section" style="display:none;">
+            <p class="home-section-title">👥 Team</p>
+            <p id="teamName" class="home-section-value"></p>
+        </div>
+        <div id="rankingSection" class="home-section" style="display:none;">
+            <p class="home-section-title">🏆 Niederlagen heute</p>
+            <p class="home-section-value" style="font-size:0.85em; font-weight:400; color:#666;">(wenigste oben)</p>
+            <ul id="rankingList" class="ranking-list"></ul>
+        </div>
         <a href="login.html?redirect=index.html" class="btn" id="btnAnmelden" style="display:none;">Anmelden</a>
         <a href="ermitteln.html" class="btn" id="btnVariante" style="display:none;">Jetzt spielen</a>
     </div>
@@ -110,16 +148,101 @@
             var btnVariante = document.getElementById("btnVariante");
             var greetingEl = document.getElementById("greeting");
             var greetingWrap = document.getElementById("greetingWrap");
+            var teamSection = document.getElementById("teamSection");
+            var teamNameEl = document.getElementById("teamName");
+            var rankingSection = document.getElementById("rankingSection");
+            var rankingList = document.getElementById("rankingList");
+
+            var rankIcons = ["🥇", "🥈", "🥉", "💀"];
+
             function escapeHtml(s) {
                 if (!s) return "";
                 var div = document.createElement("div");
                 div.textContent = s;
                 return div.innerHTML;
             }
+
+            function getCurrentTeam() {
+                try {
+                    var s = localStorage.getItem("ssp_current_team");
+                    return s ? JSON.parse(s) : null;
+                } catch (e) { return null; }
+            }
+
+            function updateTeamSection() {
+                var team = getCurrentTeam();
+                if (team && team.name) {
+                    teamNameEl.textContent = team.name;
+                    teamSection.style.display = "block";
+                } else {
+                    teamSection.style.display = "none";
+                }
+            }
+
+            function renderRanking(items) {
+                rankingList.innerHTML = "";
+                if (!items || items.length === 0) {
+                    rankingSection.style.display = "none";
+                    return;
+                }
+                rankingSection.style.display = "block";
+                items.forEach(function (item, i) {
+                    var icon = rankIcons[Math.min(i, rankIcons.length - 1)];
+                    var li = document.createElement("li");
+                    li.innerHTML = "<span class=\"rank-icon\">" + icon + "</span><span class=\"rank-name\">" + escapeHtml(item.name) + "</span><span class=\"rank-count\">" + escapeHtml(String(item.defeats)) + "</span>";
+                    rankingList.appendChild(li);
+                });
+            }
+
+            function loadRankingToday() {
+                if (typeof getSupabase !== "function") {
+                    renderRanking([]);
+                    return;
+                }
+                var team = getCurrentTeam();
+                if (!team || !team.id) {
+                    renderRanking([]);
+                    return;
+                }
+                var today = new Date().toISOString().slice(0, 10);
+                getSupabase().from("sessions").select("id").eq("team_id", team.id).then(function (sRes) {
+                    var sessionIds = (sRes.data || []).map(function (s) { return s.id; });
+                    if (sessionIds.length === 0) {
+                        renderRanking([]);
+                        return;
+                    }
+                    getSupabase().from("rounds").select("loser_player_id, played_at").in("session_id", sessionIds).not("loser_player_id", "is", null).then(function (rRes) {
+                        var rounds = (rRes.data || []).filter(function (r) { return r.played_at && r.played_at.slice(0, 10) === today; });
+                        var byPlayer = {};
+                        rounds.forEach(function (r) {
+                            var id = r.loser_player_id;
+                            byPlayer[id] = (byPlayer[id] || 0) + 1;
+                        });
+                        var playerIds = Object.keys(byPlayer);
+                        if (playerIds.length === 0) {
+                            renderRanking([]);
+                            return;
+                        }
+                        getSupabase().from("players").select("id, name").in("id", playerIds).then(function (pRes) {
+                            var names = {};
+                            (pRes.data || []).forEach(function (p) {
+                                names[p.id] = (p.name && p.name.trim()) ? p.name.trim() : "?";
+                            });
+                            var items = playerIds.map(function (id) {
+                                return { name: names[id] || "?", defeats: byPlayer[id] };
+                            }).sort(function (a, b) { return a.defeats - b.defeats; });
+                            renderRanking(items);
+                        }).catch(function () { renderRanking([]); });
+                    }).catch(function () { renderRanking([]); });
+                }).catch(function () { renderRanking([]); });
+            }
+
             function updateButtons() {
                 if (typeof getSupabase !== "function") {
                     btnAnmelden.style.display = "block";
                     greetingWrap.style.display = "none";
+                    teamSection.style.display = "none";
+                    rankingSection.style.display = "none";
                     return;
                 }
                 getSupabase().auth.getSession().then(function (r) {
@@ -134,21 +257,32 @@
                             greetingEl.innerHTML = "Hallo 👋";
                             greetingWrap.style.display = "block";
                         });
+                        updateTeamSection();
+                        loadRankingToday();
                     } else {
                         greetingWrap.style.display = "none";
+                        teamSection.style.display = "none";
+                        rankingSection.style.display = "none";
                         btnAnmelden.style.display = "block";
                         btnVariante.style.display = "none";
                     }
                 }).catch(function () {
                     greetingWrap.style.display = "none";
+                    teamSection.style.display = "none";
+                    rankingSection.style.display = "none";
                     btnAnmelden.style.display = "block";
                     btnVariante.style.display = "none";
                 });
             }
+
             updateButtons();
             if (typeof getSupabase === "function") {
                 getSupabase().auth.onAuthStateChange(updateButtons);
             }
+            window.addEventListener("storage", function () {
+                updateTeamSection();
+                if (document.getElementById("rankingList").children.length) loadRankingToday();
+            });
         })();
     </script>
 </body>

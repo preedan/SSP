@@ -42,8 +42,10 @@
         displayName = (displayName || "").trim();
         email = (session && session.user && session.user.email) ? session.user.email : (email || "");
 
-        var left = link("index.html", "Start", "start") +
-            " | " + link("statistik.html", "Statistik", "statistik");
+        var currentPage = getCurrentPage();
+        var left = (currentPage === "start"
+            ? link("index.html", "🏠 Home", "start") + " | " + link("statistik.html", "🏆 Ranking", "statistik")
+            : link("index.html", "Start", "start") + " | " + link("statistik.html", "Statistik", "statistik"));
 
         var initial = getInitial(displayName, email);
         var right = "<div class=\"app-nav-profile-wrap\">" +
