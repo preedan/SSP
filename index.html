@@ -63,18 +63,26 @@
             flex: 1 1 140px;
             min-width: 0;
         }
+        .hero-row .greeting-wrap,
+        .hero-row .team-card {
+            padding: 12px 14px;
+        }
+        .hero-row .greeting-wrap .greeting { font-size: 1.2em; margin: 0 0 2px 0; }
+        .hero-row .greeting-wrap .greeting-sub { font-size: 0.95em; margin: 0; }
+        .hero-row .team-card .home-section-title { margin: 0 0 4px 0; }
+        .hero-row .team-card .home-section-value { font-size: 1.05em; }
         /* Greeting – Hero-Karte */
         .greeting-wrap {
             background: linear-gradient(135deg, #e8f2fc 0%, #f0f7ff 100%);
             border: 1px solid var(--card-border);
             border-radius: var(--radius);
-            padding: 20px;
+            padding: 14px 16px;
             box-shadow: var(--shadow-card);
         }
         .greeting {
-            font-size: 1.35em;
+            font-size: 1.25em;
             color: var(--text);
-            margin: 0 0 6px 0;
+            margin: 0 0 4px 0;
             font-weight: 700;
             line-height: 1.3;
         }
@@ -82,7 +90,7 @@
             color: var(--primary);
         }
         .greeting-sub {
-            font-size: 1em;
+            font-size: 0.95em;
             color: var(--text-muted);
             margin: 0;
         }
@@ -100,7 +108,15 @@
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            margin: 0 0 10px 0;
+            margin: 0 0 8px 0;
+        }
+        .home-section.ranking-section {
+            padding: 18px 20px;
+            min-height: 200px;
+            flex: 1 1 auto;
+        }
+        .home-section.ranking-section .home-section-title {
+            margin: 0 0 12px 0;
         }
         .home-section-value {
             font-size: 1.15em;
@@ -122,10 +138,10 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 10px;
-            margin: 0 -10px;
+            padding: 14px 12px;
+            margin: 0 -12px;
             border-radius: var(--radius-sm);
-            font-size: 1em;
+            font-size: 1.05em;
             transition: background 0.15s ease;
         }
         .ranking-list li:hover {
@@ -150,7 +166,7 @@
             text-align: right;
         }
         .ranking-empty {
-            padding: 16px 0;
+            padding: 24px 0;
             text-align: center;
             font-size: 0.95em;
             color: var(--text-muted);
