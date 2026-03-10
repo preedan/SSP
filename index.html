@@ -56,18 +56,17 @@
             flex-direction: column;
             gap: 16px;
         }
-        /* Hero-Zeile: Begrüßung und Team je 50 % inkl. Abstand */
+        /* Hero-Zeile: Begrüßung und Team je 50 % inkl. Abstand, gleiche Höhe */
         .hero-row {
             display: flex;
             flex-wrap: nowrap;
             gap: 16px;
-            align-items: flex-start;
+            align-items: stretch;
         }
         .hero-row .greeting-wrap,
         .hero-row .team-card {
             flex: 1 1 0;
             min-width: 0;
-            align-self: flex-start;
             padding: 8px 12px;
             min-height: 0;
         }
