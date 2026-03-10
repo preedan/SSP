@@ -1,161 +1,307 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="HandClash.png">
-    <title>Schere, Stein, Papier</title>
+    <title>Variante ermitteln – HandClash</title>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body {
+        :root {
+            --app-bg: #eef4fb;
+            --card-bg: #ffffff;
+            --card-border: rgba(38, 123, 181, 0.12);
+            --primary: #267bb5;
+            --primary-dark: #1a5d8b;
+            --text: #1f2937;
+            --text-muted: #6b7280;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-card: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        body, html {
+            height: 100%;
             margin: 0;
-            padding: 20px;
+            display: flex;
+            flex-direction: column;
             font-family: 'Baloo 2', cursive;
-            background-color: #f0f0f0;
-            transition: background-color 0.5s ease;
+            background: var(--app-bg);
+            -webkit-font-smoothing: antialiased;
         }
-        #app-nav { margin: -20px -20px 0 -20px; }
-        h2, p {
-            text-align: center;
-            margin-top: 0px; /* Increased top margin to position the header lower */
-            margin-bottom: 0px; /* Adjust bottom margin as needed */
+        body > .container {
+            flex: 1;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
-        h1 {
-            font-size: 2em; /* Ensure font size is consistent */
-            text-align: center;
-            margin-top: 20px; /* Increased top margin to position the header lower */
-            margin-bottom: 0px; /* Adjust bottom margin as needed */
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 16px;
+            width: 100%;
+            max-width: none;
+            padding: 20px;
+            box-sizing: border-box;
         }
-        button {
-            background-color: #267bb5;
+        .content-inner {
+            max-width: 560px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .home-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow-card);
+        }
+        .home-section-title {
+            font-size: 0.8em;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin: 0 0 8px 0;
+        }
+        .btn {
+            width: 100%;
+            min-height: 52px;
+            box-sizing: border-box;
+            text-decoration: none;
+            padding: 16px 20px;
+            background: var(--primary);
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            font-family: 'Baloo 2', cursive;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            display: block;
-            margin: 0px auto;
-        }
-        button:hover {
-            background-color: #1a5d8b;
-        }
-        .media-container {
-            display: none;
-            background: #ffffff;
-            padding: 10px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: var(--radius);
+            transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             text-align: center;
-            margin-top: 10px;
+            font-family: inherit;
+            font-size: 1.15em;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(38, 123, 181, 0.35);
+            cursor: pointer;
         }
-        img, video {
-            max-width: 100%;
+        .btn:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(38, 123, 181, 0.4);
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn:focus {
+            outline: 3px solid rgba(38, 123, 181, 0.4);
+            outline-offset: 2px;
+        }
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .spinner-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 20px 0;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(38, 123, 181, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner-text {
+            font-size: 1em;
+            color: var(--text-muted);
+            margin: 0;
+        }
+        .variant-result-card .variant-title {
+            font-size: 1.15em;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 12px 0;
+        }
+        .variant-result-card .variant-media {
+            width: 100%;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin-bottom: 12px;
+            background: #f8fafc;
+        }
+        .variant-result-card .variant-media img,
+        .variant-result-card .variant-media video {
+            display: block;
+            width: 100%;
             height: auto;
-            border-radius: 5px;
-            margin-bottom: 0px;
+            border-radius: var(--radius-sm);
         }
-        .sieger-link { display: inline-block; margin-top: 8px; padding: 10px 16px; background: #2a9d2a; color: #fff; text-decoration: none; border-radius: 6px; font-family: inherit; }
-        .sieger-link:hover { background: #228b22; }
-        @media (max-width: 768px) {
+        .variant-result-card .variant-description {
+            font-size: 0.95em;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.4;
+        }
+        .variant-control-state {
+            display: none;
+        }
+        .variant-control-state.is-active {
+            display: block;
+        }
+        .variant-result-section {
+            display: none;
+        }
+        .variant-result-section.has-result {
+            display: block;
         }
     </style>
 </head>
 <body>
     <div id="app-nav"></div>
-    <h1>Variante ermitteln</h1>
-    <p id="loadStatus" style="text-align:center;margin-top:8px;"></p>
-    <button id="startButton" onclick="startImageRotation()" disabled>Start</button>
-    <p style="margin-top: 16px;"><a href="eintragen.html" class="sieger-link">Verlierer eintragen</a></p>
-    <div class="media-container" id="mediaContainer">
-        <h2 id="variantName"></h2>
-        <img id="variantImage" src="" alt="Variant image" style="display:none;">
-        <video id="variantVideo" controls style="display:none;">
-            <source src="" type="video/mp4">
-        </video>
-        <p id="variantDescription"></p>  
+    <div class="container">
+        <div class="content-inner">
+            <!-- Spielvariante: Control + Result -->
+            <section class="home-section" aria-labelledby="section-variante-heading">
+                <p id="section-variante-heading" class="home-section-title">Spielvariante</p>
+                <div id="variantControlIdle" class="variant-control-state is-active">
+                    <button type="button" id="btnErmitteln" class="btn" disabled>Variante ermitteln</button>
+                </div>
+                <div id="variantControlLoading" class="variant-control-state">
+                    <div class="spinner-wrap">
+                        <div class="spinner" aria-hidden="true"></div>
+                        <p class="spinner-text">Variante wird ermittelt…</p>
+                    </div>
+                </div>
+                <div id="variantResultSection" class="variant-result-section">
+                    <div class="variant-result-card">
+                        <h2 id="variantName" class="variant-title"></h2>
+                        <div class="variant-media" id="variantMediaWrap">
+                            <img id="variantImage" src="" alt="" style="display:none;">
+                            <video id="variantVideo" controls style="display:none;">
+                                <source src="" type="video/mp4">
+                            </video>
+                        </div>
+                        <p id="variantDescription" class="variant-description"></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Runde abschließen: Verlierer eintragen (immer sichtbar) -->
+            <section class="home-section" aria-labelledby="section-runde-heading">
+                <p id="section-runde-heading" class="home-section-title">Runde abschließen</p>
+                <a href="eintragen.html" class="btn">Verlierer eintragen</a>
+            </section>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="nav.js"></script>
     <script>
-        let contentList = [];
-        let currentIndex = 0;
-        let intervalId;
-        let rotationInProgress = false;
+        (function () {
+            var contentList = [];
+            var rotationInProgress = false;
 
-        /** Varianten aus der Tabelle variants laden (nur is_active = true). */
-        async function loadVariants() {
-            const statusEl = document.getElementById("loadStatus");
-            const btn = document.getElementById("startButton");
-            statusEl.textContent = "Varianten werden geladen…";
-            try {
-                const { data, error } = await getSupabase()
+            var btnErmitteln = document.getElementById("btnErmitteln");
+            var variantControlIdle = document.getElementById("variantControlIdle");
+            var variantControlLoading = document.getElementById("variantControlLoading");
+            var variantResultSection = document.getElementById("variantResultSection");
+            var variantNameEl = document.getElementById("variantName");
+            var variantImage = document.getElementById("variantImage");
+            var variantVideo = document.getElementById("variantVideo");
+            var variantDescriptionEl = document.getElementById("variantDescription");
+
+            function setState(idle, loading, hasResult) {
+                variantControlIdle.classList.toggle("is-active", idle);
+                variantControlLoading.classList.toggle("is-active", loading);
+                variantResultSection.classList.toggle("has-result", !!hasResult);
+            }
+
+            function loadVariants() {
+                if (typeof getSupabase !== "function") {
+                    btnErmitteln.disabled = true;
+                    return;
+                }
+                getSupabase()
                     .from("variants")
                     .select("*")
-                    .eq("is_active", true);
-                if (error) throw error;
-                contentList = (data || []).map((row) => ({
-                    type: row.video_url ? "video" : "image",
-                    source: row.video_url || row.image_url || "",
-                    text: row.name || "",
-                    description: row.description || ""
-                }));
-                statusEl.textContent = "";
-                btn.disabled = contentList.length === 0;
-                if (contentList.length === 0) statusEl.textContent = "Keine aktiven Varianten gefunden.";
-            } catch (e) {
-                console.error("Fehler beim Laden der Varianten:", e);
-                statusEl.textContent = "Varianten konnten nicht geladen werden. Bitte Supabase-URL und Publishable Key prüfen.";
-                btn.disabled = true;
+                    .eq("is_active", true)
+                    .then(function (res) {
+                        var data = res.data || [];
+                        contentList = data.map(function (row) {
+                            return {
+                                type: row.video_url ? "video" : "image",
+                                source: row.video_url || row.image_url || "",
+                                text: row.name || "",
+                                description: row.description || ""
+                            };
+                        });
+                        btnErmitteln.disabled = contentList.length === 0;
+                    })
+                    .catch(function (err) {
+                        console.error("Fehler beim Laden der Varianten:", err);
+                        btnErmitteln.disabled = true;
+                    });
             }
-        }
 
-        function startImageRotation() {
-            if (rotationInProgress || contentList.length === 0) return;
-            rotationInProgress = true;
-            const icons = ["🪨", "✂️", "📄"];
-            let iconIndex = 0;
+            function escapeHtml(s) {
+                if (!s) return "";
+                var div = document.createElement("div");
+                div.textContent = s;
+                return div.innerHTML;
+            }
 
-            document.getElementById("startButton").disabled = true;
-            document.getElementById("mediaContainer").style.display = "none";
-
-            intervalId = setInterval(() => {
-                document.getElementById("startButton").textContent = icons[iconIndex % icons.length];
-                iconIndex++;
-            }, 200);
-
-            setTimeout(() => {
-                clearInterval(intervalId);
-                const selectedVariantIndex = Math.floor(Math.random() * contentList.length);
-                displaySelectedVariant(selectedVariantIndex);
-                document.getElementById("startButton").textContent = "Start";
-                document.getElementById("startButton").disabled = false;
+            function showSelectedVariant(index) {
+                var variant = contentList[index];
+                variantNameEl.textContent = variant.text || "";
+                variantDescriptionEl.textContent = variant.description || "";
+                if (variant.type === "image") {
+                    variantImage.src = variant.source;
+                    variantImage.alt = variant.text || "Variantenbild";
+                    variantImage.style.display = "block";
+                    variantVideo.style.display = "none";
+                } else {
+                    variantVideo.querySelector("source").src = variant.source;
+                    variantVideo.load();
+                    variantVideo.style.display = "block";
+                    variantImage.style.display = "none";
+                }
+                setState(true, false, true);
+                btnErmitteln.disabled = false;
                 rotationInProgress = false;
-            }, 5000);
-        }
-
-        function displaySelectedVariant(index) {
-            const variant = contentList[index];
-            document.getElementById("variantName").textContent = variant.text;
-            document.getElementById("variantDescription").textContent = variant.description;
-            if (variant.type === "image") {
-                document.getElementById("variantImage").src = variant.source;
-                document.getElementById("variantImage").style.display = "block";
-                document.getElementById("variantVideo").style.display = "none";
-            } else if (variant.type === "video") {
-                document.getElementById("variantVideo").querySelector("source").src = variant.source;
-                document.getElementById("variantVideo").load();
-                document.getElementById("variantVideo").style.display = "block";
-                document.getElementById("variantImage").style.display = "none";
             }
-            document.getElementById("mediaContainer").style.display = "block";
-        }
 
-        document.addEventListener("DOMContentLoaded", loadVariants);
+            function startVariantSelection() {
+                if (rotationInProgress || contentList.length === 0) return;
+                rotationInProgress = true;
+                setState(false, true, false);
+                btnErmitteln.disabled = true;
+
+                setTimeout(function () {
+                    var idx = Math.floor(Math.random() * contentList.length);
+                    showSelectedVariant(idx);
+                }, 2500);
+            }
+
+            btnErmitteln.addEventListener("click", startVariantSelection);
+
+            document.addEventListener("DOMContentLoaded", loadVariants);
+        })();
     </script>
 </body>
 </html>
