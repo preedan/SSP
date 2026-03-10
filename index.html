@@ -43,9 +43,25 @@
             flex-direction: column;
             align-items: stretch;
             gap: 16px;
-            max-width: 400px;
+            max-width: 560px;
             width: 100%;
             padding: 20px;
+            box-sizing: border-box;
+        }
+        /* Hero-Zeile: Begrüßung links, Team rechts */
+        .hero-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: stretch;
+        }
+        .hero-row .greeting-wrap {
+            flex: 1 1 220px;
+            min-width: 0;
+        }
+        .hero-row .team-card {
+            flex: 1 1 140px;
+            min-width: 0;
         }
         /* Greeting – Hero-Karte */
         .greeting-wrap {
@@ -139,8 +155,9 @@
             font-size: 0.95em;
             color: var(--text-muted);
         }
-        /* Buttons */
+        /* Buttons – volle Breite */
         .btn {
+            width: 100%;
             min-height: 52px;
             box-sizing: border-box;
             text-decoration: none;
@@ -181,20 +198,38 @@
         .btn-secondary:hover {
             background: #e8f2fc;
         }
+        /* Responsive: Ranking breiter, Hero-Zeile stapelt auf schmalen Screens */
+        @media (min-width: 480px) {
+            .container { max-width: 560px; }
+            .home-section.ranking-section { padding: 18px 20px; }
+        }
+        @media (min-width: 600px) {
+            body > .container { padding: 20px; }
+            .container { max-width: 640px; padding: 24px; }
+        }
+        @media (max-width: 479px) {
+            .container { padding: 16px; max-width: 100%; }
+            .hero-row { flex-direction: column; }
+            .hero-row .greeting-wrap,
+            .hero-row .team-card { flex: 1 1 100%; }
+            .ranking-list li { padding: 10px 12px; margin: 0 -12px; }
+        }
     </style>
 </head>
 <body>
     <div id="app-nav"></div>
     <div class="container">
-        <div id="greetingWrap" class="greeting-wrap" style="display:none;">
-            <p id="greeting" class="greeting"></p>
-            <p id="greetingSub" class="greeting-sub">Bereit für eine Runde?</p>
+        <div class="hero-row">
+            <div id="greetingWrap" class="greeting-wrap" style="display:none;">
+                <p id="greeting" class="greeting"></p>
+                <p id="greetingSub" class="greeting-sub">Bereit für eine Runde?</p>
+            </div>
+            <div id="teamSection" class="home-section team-card" style="display:none;">
+                <p class="home-section-title">👥 Team</p>
+                <p id="teamName" class="home-section-value"></p>
+            </div>
         </div>
-        <div id="teamSection" class="home-section team-card" style="display:none;">
-            <p class="home-section-title">👥 Team</p>
-            <p id="teamName" class="home-section-value"></p>
-        </div>
-        <div id="rankingSection" class="home-section" style="display:none;">
+        <div id="rankingSection" class="home-section ranking-section" style="display:none;">
             <p class="home-section-title">🏆 Niederlagen heute</p>
             <ul id="rankingList" class="ranking-list"></ul>
             <p id="rankingEmpty" class="ranking-empty" style="display:none;">Noch keine Runden heute gespielt.</p>
