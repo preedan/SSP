@@ -48,16 +48,22 @@
             padding: 20px;
             box-sizing: border-box;
         }
-        /* Hero-Zeile: Begrüßung links, Team rechts – Höhe nur so hoch wie Inhalt (zwei Zeilen) */
+        /* Hero-Zeile: Begrüßung und Team immer nebeneinander */
         .hero-row {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 16px;
             align-items: flex-start;
         }
-        .hero-row .greeting-wrap,
+        .hero-row .greeting-wrap {
+            flex: 1 1 auto;
+            min-width: 0;
+            align-self: flex-start;
+            padding: 8px 12px;
+            min-height: 0;
+        }
         .hero-row .team-card {
-            flex: 1 1 140px;
+            flex: 0 1 auto;
             min-width: 0;
             align-self: flex-start;
             padding: 8px 12px;
@@ -224,28 +230,6 @@
         }
         .btn-secondary:hover {
             background: #e8f2fc;
-        }
-        /* Responsive: Ranking breiter, Hero-Zeile stapelt auf schmalen Screens */
-        @media (min-width: 480px) {
-            .container { max-width: 560px; }
-            .home-section.ranking-section { padding: 18px 20px; }
-        }
-        @media (min-width: 600px) {
-            body > .container { padding: 20px; }
-            .container { max-width: 640px; padding: 24px; }
-        }
-        @media (max-width: 479px) {
-            .container { padding: 16px; max-width: 100%; }
-            .hero-row { flex-direction: column; }
-            .hero-row .greeting-wrap,
-            .hero-row .team-card {
-                flex: 1 1 100%;
-                padding: 6px 10px;
-            }
-            .hero-row .greeting-wrap .greeting { font-size: 1.1em; }
-            .hero-row .greeting-wrap .greeting-sub { font-size: 0.85em; }
-            .hero-row .team-card .home-section-value { font-size: 0.95em; }
-            .ranking-list li { padding: 10px 12px; margin: 0 -12px; }
         }
     </style>
 </head>
