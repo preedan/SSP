@@ -38,20 +38,22 @@
         }
         .greeting-wrap {
             width: 100%;
-            margin: -24px -20px 20px -20px;
-            padding: 14px 20px;
-            background: linear-gradient(135deg, #e8f2fc 0%, #f0f7ff 100%);
-            border-radius: 12px 12px 0 0;
-            border-bottom: 1px solid rgba(38, 123, 181, 0.15);
+            margin: 0 0 16px 0;
+            text-align: left;
         }
         .greeting {
             font-size: 1.15em;
-            color: #1a5d8b;
-            margin: 0;
+            color: #333;
+            margin: 0 0 4px 0;
             font-weight: 700;
         }
         .greeting .greeting-name {
             color: #267bb5;
+        }
+        .greeting-sub {
+            font-size: 1em;
+            color: #555;
+            margin: 0;
         }
         .logo-img {
             width: 100%;
@@ -93,10 +95,11 @@
     <div class="container">
         <div id="greetingWrap" class="greeting-wrap" style="display:none;">
             <p id="greeting" class="greeting"></p>
+            <p id="greetingSub" class="greeting-sub">Bereit für eine Runde?</p>
         </div>
         <img src="HandClash.png" alt="" class="logo-img">
         <a href="login.html?redirect=index.html" class="btn" id="btnAnmelden" style="display:none;">Anmelden</a>
-        <a href="ermitteln.html" class="btn" id="btnVariante" style="display:none;">Variante wählen</a>
+        <a href="ermitteln.html" class="btn" id="btnVariante" style="display:none;">Jetzt spielen</a>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
@@ -125,10 +128,10 @@
                         btnAnmelden.style.display = "none";
                         getSupabase().from("profiles").select("display_name").eq("user_id", r.data.session.user.id).maybeSingle().then(function (res) {
                             var name = (res.data && res.data.display_name && res.data.display_name.trim()) ? res.data.display_name.trim() : "";
-                            greetingEl.innerHTML = name ? "Hallo, <span class=\"greeting-name\">" + escapeHtml(name) + "</span>!" : "Hallo!";
+                            greetingEl.innerHTML = name ? "Hallo <span class=\"greeting-name\">" + escapeHtml(name) + "</span>👋" : "Hallo 👋";
                             greetingWrap.style.display = "block";
                         }).catch(function () {
-                            greetingEl.innerHTML = "Hallo!";
+                            greetingEl.innerHTML = "Hallo 👋";
                             greetingWrap.style.display = "block";
                         });
                     } else {
