@@ -56,61 +56,36 @@
             flex-direction: column;
             gap: 16px;
         }
-        /* Hero-Zeile: Begrüßung und Team je 50 % inkl. Abstand, gleiche Höhe */
+        /* Hero-Zeile: 2 Spalten, einheitliche Cards (Titel + Untertitel) */
         .hero-row {
-            display: flex;
-            flex-wrap: nowrap;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 16px;
             align-items: stretch;
         }
-        .hero-row .greeting-wrap,
-        .hero-row .team-card {
-            flex: 1 1 0;
-            min-width: 0;
-            padding: 8px 12px;
-            min-height: 0;
-        }
-        .hero-row .greeting-wrap .greeting {
-            font-size: 1.15em;
-            margin: 0 0 2px 0;
-            line-height: 1.25;
-        }
-        .hero-row .greeting-wrap .greeting-sub {
-            font-size: 0.9em;
-            margin: 0;
-            line-height: 1.25;
-        }
-        .hero-row .team-card .home-section-title {
-            margin: 0 0 2px 0;
-            font-size: 0.75em;
-            line-height: 1.2;
-        }
-        .hero-row .team-card .home-section-value {
-            font-size: 1em;
-            line-height: 1.25;
-        }
-        /* Greeting – Hero-Karte */
-        .greeting-wrap {
+        .hero-card {
             background: linear-gradient(135deg, #e8f2fc 0%, #f0f7ff 100%);
             border: 1px solid var(--card-border);
             border-radius: var(--radius);
             padding: 14px 16px;
             box-shadow: var(--shadow-card);
+            min-height: 0;
         }
-        .greeting {
-            font-size: 1.25em;
+        .hero-card-title {
+            font-size: 20px;
+            font-weight: 600;
             color: var(--text);
             margin: 0 0 4px 0;
-            font-weight: 700;
             line-height: 1.3;
         }
-        .greeting .greeting-name {
+        .hero-card-title .greeting-name {
             color: var(--primary);
         }
-        .greeting-sub {
-            font-size: 0.95em;
+        .hero-card-sub {
+            font-size: 14px;
             color: var(--text-muted);
             margin: 0;
+            line-height: 1.3;
         }
         /* Sektionen als Karten */
         .home-section {
@@ -142,11 +117,6 @@
             font-size: 1.15em;
             font-weight: 700;
             color: var(--text);
-        }
-        /* Team-Karte: Wert hervorgehoben */
-        .home-section.team-card .home-section-value {
-            color: var(--primary);
-            font-size: 1.2em;
         }
         /* Ranking-Liste */
         .ranking-list {
@@ -241,13 +211,13 @@
     <div class="container">
         <div class="content-inner">
             <div class="hero-row">
-                <div id="greetingWrap" class="greeting-wrap" style="display:none;">
-                    <p id="greeting" class="greeting"></p>
-                    <p id="greetingSub" class="greeting-sub">Bereit für eine Runde?</p>
+                <div id="greetingWrap" class="hero-card" style="display:none;">
+                    <p id="greeting" class="hero-card-title"></p>
+                    <p id="greetingSub" class="hero-card-sub">Bereit für eine Runde?</p>
                 </div>
-                <div id="teamSection" class="home-section team-card" style="display:none;">
-                    <p class="home-section-title">👥 Team</p>
-                    <p id="teamName" class="home-section-value"></p>
+                <div id="teamSection" class="hero-card" style="display:none;">
+                    <p id="teamName" class="hero-card-title"></p>
+                    <p id="teamPlayerCount" class="hero-card-sub"></p>
                 </div>
             </div>
             <a href="login.html?redirect=index.html" class="btn btn-secondary" id="btnAnmelden" style="display:none;">Anmelden</a>
@@ -270,6 +240,7 @@
             var greetingWrap = document.getElementById("greetingWrap");
             var teamSection = document.getElementById("teamSection");
             var teamNameEl = document.getElementById("teamName");
+            var teamPlayerCountEl = document.getElementById("teamPlayerCount");
             var rankingSection = document.getElementById("rankingSection");
             var rankingList = document.getElementById("rankingList");
             var rankingEmpty = document.getElementById("rankingEmpty");
@@ -292,12 +263,22 @@
 
             function updateTeamSection() {
                 var team = getCurrentTeam();
-                if (team && team.name) {
-                    teamNameEl.textContent = team.name;
-                    teamSection.style.display = "block";
-                } else {
+                if (!team || !team.name) {
                     teamSection.style.display = "none";
+                    return;
                 }
+                teamNameEl.textContent = "👥 " + team.name;
+                teamSection.style.display = "block";
+                if (!team.id || typeof getSupabase !== "function") {
+                    teamPlayerCountEl.textContent = "";
+                    return;
+                }
+                getSupabase().from("players").select("id").eq("team_id", team.id).then(function (res) {
+                    var count = (res.data || []).length;
+                    teamPlayerCountEl.textContent = count === 1 ? "1 Spieler" : count + " Spieler";
+                }).catch(function () {
+                    teamPlayerCountEl.textContent = "";
+                });
             }
 
             function renderRanking(items) {
