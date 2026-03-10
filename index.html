@@ -48,29 +48,40 @@
             padding: 20px;
             box-sizing: border-box;
         }
-        /* Hero-Zeile: Begrüßung links, Team rechts */
+        /* Hero-Zeile: Begrüßung links, Team rechts – Höhe nur so hoch wie Inhalt (zwei Zeilen) */
         .hero-row {
             display: flex;
             flex-wrap: wrap;
             gap: 16px;
-            align-items: stretch;
-        }
-        .hero-row .greeting-wrap {
-            flex: 1 1 220px;
-            min-width: 0;
-        }
-        .hero-row .team-card {
-            flex: 1 1 140px;
-            min-width: 0;
+            align-items: flex-start;
         }
         .hero-row .greeting-wrap,
         .hero-row .team-card {
-            padding: 12px 14px;
+            flex: 1 1 140px;
+            min-width: 0;
+            align-self: flex-start;
+            padding: 8px 12px;
+            min-height: 0;
         }
-        .hero-row .greeting-wrap .greeting { font-size: 1.2em; margin: 0 0 2px 0; }
-        .hero-row .greeting-wrap .greeting-sub { font-size: 0.95em; margin: 0; }
-        .hero-row .team-card .home-section-title { margin: 0 0 4px 0; }
-        .hero-row .team-card .home-section-value { font-size: 1.05em; }
+        .hero-row .greeting-wrap .greeting {
+            font-size: 1.15em;
+            margin: 0 0 2px 0;
+            line-height: 1.25;
+        }
+        .hero-row .greeting-wrap .greeting-sub {
+            font-size: 0.9em;
+            margin: 0;
+            line-height: 1.25;
+        }
+        .hero-row .team-card .home-section-title {
+            margin: 0 0 2px 0;
+            font-size: 0.75em;
+            line-height: 1.2;
+        }
+        .hero-row .team-card .home-section-value {
+            font-size: 1em;
+            line-height: 1.25;
+        }
         /* Greeting – Hero-Karte */
         .greeting-wrap {
             background: linear-gradient(135deg, #e8f2fc 0%, #f0f7ff 100%);
@@ -227,7 +238,13 @@
             .container { padding: 16px; max-width: 100%; }
             .hero-row { flex-direction: column; }
             .hero-row .greeting-wrap,
-            .hero-row .team-card { flex: 1 1 100%; }
+            .hero-row .team-card {
+                flex: 1 1 100%;
+                padding: 6px 10px;
+            }
+            .hero-row .greeting-wrap .greeting { font-size: 1.1em; }
+            .hero-row .greeting-wrap .greeting-sub { font-size: 0.85em; }
+            .hero-row .team-card .home-section-value { font-size: 0.95em; }
             .ranking-list li { padding: 10px 12px; margin: 0 -12px; }
         }
     </style>
