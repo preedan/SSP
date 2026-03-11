@@ -57,6 +57,16 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+        .content-inner .scroll-area {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
         .home-section {
             background: var(--card-bg);
@@ -69,6 +79,9 @@
             position: sticky;
             top: 0;
             z-index: 1;
+        }
+        .home-section.footer-actions {
+            flex-shrink: 0;
         }
         .home-section-title {
             font-size: 0.8em;
@@ -210,34 +223,35 @@
     <div id="app-nav"></div>
     <div class="container">
         <div class="content-inner">
-            <!-- Spiel starten: Variante ermitteln (oben fixiert) -->
-            <section class="home-section sticky-top" aria-labelledby="section-spiel-heading">
-                <p id="section-spiel-heading" class="home-section-title">🎲 Spiel starten</p>
-                <div id="variantControlIdle" class="variant-control-state is-active">
-                    <button type="button" id="btnErmitteln" class="btn btn-play" disabled>Variante ermitteln</button>
-                </div>
-                <div id="variantControlLoading" class="variant-control-state">
-                    <div class="slot-wrap">
-                        <p class="slot-label">Variante wird ermittelt…</p>
-                        <div id="slotName" class="slot-name" aria-live="polite"></div>
+            <div class="scroll-area">
+                <!-- Spiel starten: Variante ermitteln (oben fixiert) -->
+                <section class="home-section sticky-top" aria-labelledby="section-spiel-heading">
+                    <p id="section-spiel-heading" class="home-section-title">🎲 Spiel starten</p>
+                    <div id="variantControlIdle" class="variant-control-state is-active">
+                        <button type="button" id="btnErmitteln" class="btn btn-play" disabled>Variante ermitteln</button>
                     </div>
-                </div>
-                <div id="variantResultSection" class="variant-result-section">
-                    <div class="variant-result-card">
-                        <h2 id="variantName" class="variant-title"></h2>
-                        <div class="variant-media" id="variantMediaWrap">
-                            <img id="variantImage" src="" alt="" style="display:none;">
-                            <video id="variantVideo" controls style="display:none;">
-                                <source src="" type="video/mp4">
-                            </video>
+                    <div id="variantControlLoading" class="variant-control-state">
+                        <div class="slot-wrap">
+                            <p class="slot-label">Variante wird ermittelt…</p>
+                            <div id="slotName" class="slot-name" aria-live="polite"></div>
                         </div>
-                        <p id="variantDescription" class="variant-description"></p>
                     </div>
-                </div>
-            </section>
-
-            <!-- Runde abschließen: Verlierer eintragen (immer sichtbar) -->
-            <section class="home-section" aria-labelledby="section-runde-heading">
+                    <div id="variantResultSection" class="variant-result-section">
+                        <div class="variant-result-card">
+                            <h2 id="variantName" class="variant-title"></h2>
+                            <div class="variant-media" id="variantMediaWrap">
+                                <img id="variantImage" src="" alt="" style="display:none;">
+                                <video id="variantVideo" controls style="display:none;">
+                                    <source src="" type="video/mp4">
+                                </video>
+                            </div>
+                            <p id="variantDescription" class="variant-description"></p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- Runde abschließen: Verlierer eintragen (immer sichtbar am unteren Rand) -->
+            <section class="home-section footer-actions" aria-labelledby="section-runde-heading">
                 <p id="section-runde-heading" class="home-section-title">☠ Runde abschließen</p>
                 <a href="eintragen.html" class="btn">Verlierer eintragen</a>
             </section>
