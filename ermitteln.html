@@ -63,7 +63,7 @@
         .content-inner .scroll-area {
             flex: 1;
             min-height: 0;
-            overflow-y: auto;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -173,20 +173,9 @@
             margin: 0 0 12px 0;
         }
         .variant-result-card .variant-media {
-            max-width: 260px;
-            margin-left: auto;
-            margin-right: auto;
             border-radius: var(--radius-sm);
-            overflow: hidden;
             margin-bottom: 12px;
             background: #f8fafc;
-        }
-        .variant-result-card .variant-media img,
-        .variant-result-card .variant-media video {
-            display: block;
-            width: 100%;
-            height: auto;
-            border-radius: var(--radius-sm);
         }
         .variant-result-card .variant-description {
             font-size: 0.95em;
@@ -203,20 +192,34 @@
         .variant-result-section {
             display: none;
         }
-        .variant-result-section {
-            display: none;
-        }
         .variant-result-section.has-result {
-            display: block;
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            flex-direction: column;
+            overflow: hidden;
         }
         .variant-result-card {
             animation: resultReveal 0.45s ease-out;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .variant-result-card .variant-title,
+        .variant-result-card .variant-description {
+            flex-shrink: 0;
         }
         .variant-result-standalone-wrap {
             display: none;
         }
         .variant-result-standalone-wrap.is-visible {
-            display: block;
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            flex-direction: column;
+            overflow: hidden;
         }
         .variant-result-standalone {
             background: var(--card-bg);
@@ -227,6 +230,29 @@
             max-width: 320px;
             margin-left: auto;
             margin-right: auto;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .variant-result-card .variant-media {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .variant-result-card .variant-media img,
+        .variant-result-card .variant-media video {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: var(--radius-sm);
         }
         @keyframes resultReveal {
             0% { opacity: 0; transform: scale(0.94); }
