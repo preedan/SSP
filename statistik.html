@@ -130,6 +130,9 @@
     <script src="nav.js"></script>
     <script>
         (function () {
+            if (typeof Chart !== "undefined" && typeof ChartDataLabels !== "undefined") {
+                Chart.register(ChartDataLabels);
+            }
             var messageEl = document.getElementById("message");
             var resultCard = document.getElementById("resultCard");
             var lossesChartWrap = document.getElementById("lossesChartWrap");
