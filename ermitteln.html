@@ -429,6 +429,7 @@
                         var data = res.data || [];
                         contentList = data.map(function (row) {
                             return {
+                                id: row.id,
                                 type: row.video_url ? "video" : "image",
                                 source: row.video_url || row.image_url || "",
                                 text: row.name || "",
@@ -454,6 +455,9 @@
 
             function showSelectedVariant(index) {
                 var variant = contentList[index];
+                if (variant && variant.id) {
+                    try { localStorage.setItem("ssp_last_ermittelt_variant_id", String(variant.id)); } catch (e) {}
+                }
                 variantNameEl.textContent = variant.text || "";
                 variantDescriptionEl.textContent = variant.description || "";
                 if (variant.type === "image") {

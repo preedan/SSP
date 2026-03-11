@@ -114,6 +114,16 @@
                         (varRes.data || []).map(function (v) {
                             return "<option value=\"" + v.id + "\">" + (v.name || "Unbekannt").replace(/</g, "&lt;").replace(/"/g, "&quot;") + "</option>";
                         }).join("");
+                    var lastVariantId = null;
+                    try { lastVariantId = localStorage.getItem("ssp_last_ermittelt_variant_id"); } catch (e) {}
+                    if (lastVariantId) {
+                        for (var i = 0; i < variantSelect.options.length; i++) {
+                            if (variantSelect.options[i].value === lastVariantId) {
+                                variantSelect.value = lastVariantId;
+                                break;
+                            }
+                        }
+                    }
                     loserSelect.innerHTML = "<option value=''>– Bitte wählen –</option>" +
                         (playRes.data || []).map(function (p) {
                             return "<option value=\"" + p.id + "\">" + (p.name || "Unbekannt").replace(/</g, "&lt;").replace(/"/g, "&quot;") + "</option>";
