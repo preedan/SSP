@@ -167,21 +167,59 @@
             100% { transform: scale(1); }
         }
         .variant-result-card .variant-title {
-            font-size: 1.15em;
+            font-size: 1.5em;
             font-weight: 700;
-            color: var(--text);
+            color: var(--primary);
             margin: 0 0 12px 0;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            text-align: center;
         }
-        .variant-result-card .variant-media {
+        .variant-result-card .variant-details-accordion {
+            flex-shrink: 0;
+            margin-top: 8px;
+        }
+        .variant-result-card .variant-details-trigger {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(38, 123, 181, 0.1);
+            color: var(--primary);
+            border: 1px solid var(--card-border);
             border-radius: var(--radius-sm);
-            margin-bottom: 12px;
-            background: #f8fafc;
+            font-family: inherit;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.2s ease;
+        }
+        .variant-result-card .variant-details-trigger:hover {
+            background: rgba(38, 123, 181, 0.18);
+        }
+        .variant-result-card .variant-details-trigger:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+        .variant-result-card .variant-details-panel {
+            display: none;
+            padding: 12px 0 0 0;
+        }
+        .variant-result-card .variant-details-panel.is-open {
+            display: block;
         }
         .variant-result-card .variant-description {
             font-size: 0.95em;
             color: var(--text-muted);
             margin: 0;
             line-height: 1.4;
+        }
+        .variant-result-card .variant-media {
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            background: #f8fafc;
         }
         .variant-control-state {
             display: none;
@@ -295,7 +333,12 @@
                                         <source src="" type="video/mp4">
                                     </video>
                                 </div>
-                                <p id="variantDescription" class="variant-description"></p>
+                                <div class="variant-details-accordion">
+                                    <button type="button" id="variantDetailsTrigger" class="variant-details-trigger" aria-expanded="false" aria-controls="variantDetailsPanel">📖 Details anzeigen</button>
+                                    <div id="variantDetailsPanel" class="variant-details-panel" role="region" aria-labelledby="variantDetailsTrigger">
+                                        <p id="variantDescription" class="variant-description"></p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -325,6 +368,17 @@
             var variantImage = document.getElementById("variantImage");
             var variantVideo = document.getElementById("variantVideo");
             var variantDescriptionEl = document.getElementById("variantDescription");
+            var variantDetailsTrigger = document.getElementById("variantDetailsTrigger");
+            var variantDetailsPanel = document.getElementById("variantDetailsPanel");
+
+            function setDetailsOpen(open) {
+                var isOpen = !!open;
+                if (variantDetailsPanel) variantDetailsPanel.classList.toggle("is-open", isOpen);
+                if (variantDetailsTrigger) {
+                    variantDetailsTrigger.setAttribute("aria-expanded", isOpen);
+                    variantDetailsTrigger.textContent = isOpen ? "📖 Details ausblenden" : "📖 Details anzeigen";
+                }
+            }
 
             function setState(idle, loading, hasResult) {
                 variantControlIdle.classList.toggle("is-active", idle);
@@ -385,8 +439,15 @@
                     variantImage.style.display = "none";
                 }
                 setState(true, false, true);
+                setDetailsOpen(false);
                 btnErmitteln.disabled = false;
                 rotationInProgress = false;
+            }
+
+            if (variantDetailsTrigger && variantDetailsPanel) {
+                variantDetailsTrigger.addEventListener("click", function () {
+                    setDetailsOpen(variantDetailsPanel.classList.toggle("is-open"));
+                });
             }
 
             function runSlot(targetIndex) {
