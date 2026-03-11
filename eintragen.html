@@ -37,7 +37,6 @@
                 <h1>Verlierer eintragen</h1>
                 <a href="ermitteln.html" class="close-btn" title="Variante ermitteln" aria-label="Schließen und zur Varianten-Auswahl">×</a>
             </div>
-            <div id="message" class="message" style="display:none;"></div>
             <div id="formBox" style="display:none;">
                 <form id="loserForm">
                     <div class="form-group">
@@ -56,14 +55,15 @@
                         <label>Symbol des Verlierers</label>
                         <select id="symbol">
                             <option value="">– optional –</option>
-                            <option value="scissors">Schere</option>
-                            <option value="rock">Stein</option>
-                            <option value="paper">Papier</option>
+                            <option value="scissors">✂️ Schere</option>
+                            <option value="rock">🪨 Stein</option>
+                            <option value="paper">📄 Papier</option>
                         </select>
                     </div>
                     <button type="submit" id="submitBtn">Eintragen</button>
                 </form>
             </div>
+            <div id="message" class="message" style="display:none;"></div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
