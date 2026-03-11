@@ -56,12 +56,27 @@
         .message.loading { background: #e7f3ff; color: var(--text); }
         .message.error { background: #fee; color: #c00; }
         .message.empty { background: #f8fafc; color: var(--text-muted); }
+        .stats-hero-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; align-items: stretch; }
+        .stats-hero-card { background: linear-gradient(135deg, #e8f2fc 0%, #f0f7ff 100%); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow-card); min-height: 0; }
+        .stats-hero-card-title { font-size: 1.1em; font-weight: 600; color: var(--text-muted); margin: 0 0 4px 0; line-height: 1.3; }
+        .stats-hero-card-value { font-size: 1.75em; font-weight: 700; color: var(--primary); margin: 0; line-height: 1.2; }
+        @media (max-width: 380px) { .stats-hero-row { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
     <div id="app-nav"></div>
     <div class="wrap">
-        <h1 class="page-title">📊 Statistik</h1>
+        <div class="stats-hero-row">
+            <div class="stats-hero-card">
+                <p class="stats-hero-card-title">Gespielte Runden</p>
+                <p id="statsRoundsCount" class="stats-hero-card-value">–</p>
+            </div>
+            <div class="stats-hero-card" id="statsTeamCard">
+                <p class="stats-hero-card-title">👥 Team</p>
+                <p id="statsTeamName" class="stats-hero-card-value"></p>
+                <p id="statsTeamPlayerCount" class="stats-hero-card-sub" style="font-size:0.9em;color:var(--text-muted);margin:4px 0 0 0;"></p>
+            </div>
+        </div>
         <div id="message" class="message" style="display:none;"></div>
         <div class="card" id="filterCard">
             <div class="filter-header">
@@ -132,10 +147,41 @@
             var filterToggleBtn = document.getElementById("filterToggleBtn");
             var filterBody = document.getElementById("filterBody");
             var filterSummary = document.getElementById("filterSummary");
+            var statsRoundsCount = document.getElementById("statsRoundsCount");
+            var statsTeamCard = document.getElementById("statsTeamCard");
+            var statsTeamName = document.getElementById("statsTeamName");
+            var statsTeamPlayerCount = document.getElementById("statsTeamPlayerCount");
 
             var myTeamIds = [];
             var myTeams = [];
             var variants = [];
+
+            function getCurrentTeam() {
+                try {
+                    var s = localStorage.getItem("ssp_current_team");
+                    return s ? JSON.parse(s) : null;
+                } catch (e) { return null; }
+            }
+
+            function updateStatsTeamCard() {
+                var team = getCurrentTeam();
+                if (!team || !team.name) {
+                    statsTeamName.textContent = "Kein Team";
+                    statsTeamPlayerCount.textContent = "Unter „Meine Teams“ wählen";
+                    return;
+                }
+                statsTeamName.textContent = team.name;
+                if (!team.id || typeof getSupabase !== "function") {
+                    statsTeamPlayerCount.textContent = "";
+                    return;
+                }
+                getSupabase().from("players").select("id").eq("team_id", team.id).then(function (res) {
+                    var count = (res.data || []).length;
+                    statsTeamPlayerCount.textContent = count === 1 ? "1 Spieler" : count + " Spieler";
+                }).catch(function () {
+                    statsTeamPlayerCount.textContent = "";
+                });
+            }
 
             function showMessage(text, type) {
                 messageEl.textContent = text;
@@ -204,6 +250,7 @@
                             }
                         }
                         updateFilterSummary();
+                        updateStatsTeamCard();
                         if (window.innerWidth <= 520) setFilterOpen(false);
                     });
                 });
@@ -220,6 +267,7 @@
 
                 var sessionTeamIds = teamId ? [teamId] : myTeamIds;
                 if (sessionTeamIds.length === 0) {
+                    if (statsRoundsCount) statsRoundsCount.textContent = "–";
                     showMessage("Kein Team ausgewählt. Bitte unter „Meine Teams“ ein Team wählen.", "empty");
                     return;
                 }
@@ -228,6 +276,7 @@
                     if (sRes.error) throw sRes.error;
                     var sessionIds = (sRes.data || []).map(function (s) { return s.id; });
                     if (sessionIds.length === 0) {
+                        if (statsRoundsCount) statsRoundsCount.textContent = "0";
                         showMessage("Noch keine Runden. Einfach spielen – dann erscheinen hier die Statistiken.", "empty");
                         return;
                     }
@@ -262,6 +311,7 @@
                     var symbolOrder = ["scissors", "rock", "paper"];
 
                     summaryText.textContent = total + " Runden im gewählten Zeitraum.";
+                    if (statsRoundsCount) statsRoundsCount.textContent = total;
 
                     if (lossesChartInstance) { lossesChartInstance.destroy(); lossesChartInstance = null; }
                     if (symbolChartInstance) { symbolChartInstance.destroy(); symbolChartInstance = null; }
@@ -307,6 +357,7 @@
                     resultCard.style.display = "block";
                     messageEl.style.display = "none";
                 }).catch(function (err) {
+                    if (statsRoundsCount) statsRoundsCount.textContent = "–";
                     showMessage(err.message || "Laden fehlgeschlagen.", "error");
                 });
             }
