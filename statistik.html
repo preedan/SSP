@@ -133,12 +133,12 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label for="filterFrom">Von</label>
-                        <input type="date" id="filterFrom">
+                        <label for="filterFrom">Von (Datum & Uhrzeit)</label>
+                        <input type="datetime-local" id="filterFrom">
                     </div>
                     <div class="filter-group">
-                        <label for="filterTo">Bis</label>
-                        <input type="date" id="filterTo">
+                        <label for="filterTo">Bis (Datum & Uhrzeit)</label>
+                        <input type="datetime-local" id="filterTo">
                     </div>
                     <div class="filter-group filter-group-btn">
                         <button type="button" id="applyBtn">Anwenden</button>
@@ -214,7 +214,7 @@
                     statsTeamPlayerCount.textContent = "Unter „Meine Teams“ wählen";
                     return;
                 }
-                statsTeamName.textContent = "👥 " + team.name;
+                statsTeamName.textContent = team.name;
                 if (!team.id || typeof getSupabase !== "function") {
                     statsTeamPlayerCount.textContent = "";
                     return;
@@ -330,8 +330,8 @@
                     var rounds = rRes.data || [];
 
                     if (variantId) rounds = rounds.filter(function (r) { return r.variant_id === variantId; });
-                    if (fromDate) rounds = rounds.filter(function (r) { return r.played_at && r.played_at.slice(0, 10) >= fromDate; });
-                    if (toDate) rounds = rounds.filter(function (r) { return r.played_at && r.played_at.slice(0, 10) <= toDate; });
+                    if (fromDate) rounds = rounds.filter(function (r) { return r.played_at && r.played_at.slice(0, 16) >= fromDate.slice(0, 16); });
+                    if (toDate) rounds = rounds.filter(function (r) { return r.played_at && r.played_at.slice(0, 16) <= toDate.slice(0, 16); });
                     rounds = rounds.filter(function (r) { return r.loser_player_id != null; });
 
                     var total = rounds.length;
@@ -363,7 +363,7 @@
                         lossesChartWrap.innerHTML = "<p class=\"message empty\">Keine Runden.</p>";
                     } else {
                         lossesChartWrap.innerHTML = "<canvas id=\"lossesChart\"></canvas>";
-                        var lossLabels = lossRows.map(function (name) { return name; });
+                        var lossLabels = lossRows.map(function (name) { return name + " (" + lossesByPlayer[name] + ")"; });
                         var lossData = lossRows.map(function (name) { return lossesByPlayer[name]; });
                         var palette = ["#267bb5", "#3d8fd4", "#5dade2", "#1a5d8b", "#7db3e0", "#2a6b94", "#4a9bc7", "#8bc4e8"];
                         var lossColors = lossLabels.map(function (_, i) { return palette[i % palette.length]; });
@@ -378,7 +378,7 @@
                         symbolChartWrap.innerHTML = "";
                     } else {
                         symbolChartWrap.innerHTML = "<canvas id=\"symbolChart\"></canvas>";
-                        var symLabels = symbolOrder.map(function (key) { return symbolLabels[key]; });
+                        var symLabels = symbolOrder.map(function (key) { return symbolLabels[key] + " (" + countBySymbol[key] + ")"; });
                         var symData = symbolOrder.map(function (key) { return countBySymbol[key]; });
                         var symColors = ["#5dade2", "#7dcea0", "#f5b041"];
                         symbolChartInstance = new Chart(document.getElementById("symbolChart"), {
