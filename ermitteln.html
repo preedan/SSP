@@ -178,6 +178,7 @@
         .variant-result-card .variant-details-accordion {
             flex-shrink: 0;
             margin-top: 8px;
+            padding: 6px;
         }
         .variant-result-card .variant-details-trigger {
             width: 100%;
@@ -221,12 +222,6 @@
             margin-bottom: 12px;
             background: #f8fafc;
         }
-        .variant-control-state {
-            display: none;
-        }
-        .variant-control-state.is-active {
-            display: block;
-        }
         .variant-result-section {
             display: none;
         }
@@ -250,14 +245,47 @@
             flex-shrink: 0;
         }
         .variant-result-standalone-wrap {
-            display: none;
-        }
-        .variant-result-standalone-wrap.is-visible {
             display: flex;
             flex: 1;
             min-height: 0;
             flex-direction: column;
             overflow: hidden;
+        }
+        .variant-center-idle,
+        .variant-center-loading {
+            display: none;
+            flex: 1;
+            min-height: 0;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .variant-center-idle.is-active,
+        .variant-center-loading.is-active {
+            display: flex;
+        }
+        .variant-center-idle .variant-idle-media {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .variant-center-idle .variant-idle-media img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: var(--radius-sm);
+        }
+        .variant-center-idle .slot-placeholder {
+            font-size: 0.95em;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 16px 16px 24px;
+            flex-shrink: 0;
         }
         .variant-result-standalone {
             background: var(--card-bg);
@@ -309,21 +337,25 @@
     <div class="container">
         <div class="content-inner">
             <div class="scroll-area">
-                <!-- Variante ermitteln (oben fixiert) -->
+                <!-- Variante ermitteln (nur Button oben) -->
                 <section class="home-section sticky-top" aria-label="Variante ermitteln">
-                    <div id="variantControlIdle" class="variant-control-state is-active">
-                        <button type="button" id="btnErmitteln" class="btn btn-play" disabled>🎲 Variante ermitteln</button>
-                    </div>
-                    <div id="variantControlLoading" class="variant-control-state">
-                        <div class="slot-wrap">
-                            <p class="slot-label">Variante wird ermittelt…</p>
-                            <div id="slotName" class="slot-name" aria-live="polite"></div>
-                        </div>
-                    </div>
+                    <button type="button" id="btnErmitteln" class="btn btn-play" disabled>🎲 Variante ermitteln</button>
                 </section>
-                <!-- Ermittelte Variante: eigene Card in der Mitte -->
+                <!-- Mittlerer Container: immer sichtbar – Slot-Anzeige oder Ergebnis -->
                 <div id="variantResultWrapper" class="variant-result-standalone-wrap">
                     <section class="home-section variant-result-standalone" aria-label="Ergebnis">
+                        <div id="variantCenterIdle" class="variant-center-idle is-active">
+                            <div class="variant-idle-media">
+                                <img src="Startpage_picture.JPG" alt="HandClash – Variante ermitteln">
+                            </div>
+                            <p class="slot-placeholder">Oben auf „Variante ermitteln“ tippen</p>
+                        </div>
+                        <div id="variantCenterLoading" class="variant-center-loading">
+                            <div class="slot-wrap">
+                                <p class="slot-label">Variante wird ermittelt…</p>
+                                <div id="slotName" class="slot-name" aria-live="polite"></div>
+                            </div>
+                        </div>
                         <div id="variantResultSection" class="variant-result-section">
                             <div class="variant-result-card">
                                 <h2 id="variantName" class="variant-title"></h2>
@@ -360,10 +392,9 @@
             var rotationInProgress = false;
 
             var btnErmitteln = document.getElementById("btnErmitteln");
-            var variantControlIdle = document.getElementById("variantControlIdle");
-            var variantControlLoading = document.getElementById("variantControlLoading");
+            var variantCenterIdle = document.getElementById("variantCenterIdle");
+            var variantCenterLoading = document.getElementById("variantCenterLoading");
             var variantResultSection = document.getElementById("variantResultSection");
-            var variantResultWrapper = document.getElementById("variantResultWrapper");
             var variantNameEl = document.getElementById("variantName");
             var variantImage = document.getElementById("variantImage");
             var variantVideo = document.getElementById("variantVideo");
@@ -381,10 +412,9 @@
             }
 
             function setState(idle, loading, hasResult) {
-                variantControlIdle.classList.toggle("is-active", idle);
-                variantControlLoading.classList.toggle("is-active", loading);
+                if (variantCenterIdle) variantCenterIdle.classList.toggle("is-active", idle && !hasResult);
+                if (variantCenterLoading) variantCenterLoading.classList.toggle("is-active", !!loading);
                 variantResultSection.classList.toggle("has-result", !!hasResult);
-                if (variantResultWrapper) variantResultWrapper.classList.toggle("is-visible", !!hasResult);
             }
 
             function loadVariants() {
