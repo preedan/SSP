@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="HandClash.png">
-    <title>HandClash</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ctext x=%2216%22 y=%2224%22 text-anchor=%22middle%22 font-size=%2224%22%3E%E2%9C%8C%EF%B8%8F%3C/text%3E%3C/svg%3E">
+    <title>SSP</title>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -246,7 +246,13 @@
             var rankingList = document.getElementById("rankingList");
             var rankingEmpty = document.getElementById("rankingEmpty");
 
-            var rankIcons = ["🥇", "🥈", "🥉", "💀"];
+            function getRankIcon(index, total) {
+                if (index === 0) return "🥇";
+                if (index === 1) return "🥈";
+                if (index === 2) return "🥉";
+                if (total > 0 && index === total - 1) return "💀";
+                return "👤";
+            }
 
             function escapeHtml(s) {
                 if (!s) return "";
@@ -268,7 +274,7 @@
                     teamSection.style.display = "none";
                     return;
                 }
-                teamNameEl.textContent = "👥 " + team.name;
+                teamNameEl.textContent = team.name;
                 teamSection.style.display = "block";
                 if (!team.id || typeof getSupabase !== "function") {
                     teamPlayerCountEl.textContent = "";
@@ -291,7 +297,7 @@
                     rankingEmpty.style.display = "none";
                     rankingList.style.display = "";
                     items.forEach(function (item, i) {
-                        var icon = rankIcons[Math.min(i, rankIcons.length - 1)];
+                        var icon = getRankIcon(i, items.length);
                         var li = document.createElement("li");
                         li.innerHTML = "<span class=\"rank-icon\">" + icon + "</span><span class=\"rank-name\">" + escapeHtml(item.name) + "</span><span class=\"rank-count\">" + escapeHtml(String(item.defeats)) + "</span>";
                         rankingList.appendChild(li);
@@ -320,14 +326,15 @@
                     getSupabase().from("sessions").select("id").eq("team_id", team.id).then(function (sRes) {
                         var sessionIds = (sRes.data || []).map(function (s) { return s.id; });
                         if (sessionIds.length === 0) {
-                            var items = allPlayers.map(function (p) {
-                                return { name: (p.name && p.name.trim()) ? p.name.trim() : "?", defeats: 0 };
-                            }).sort(function (a, b) { return a.defeats - b.defeats; });
-                            renderRanking(items);
+                            renderRanking([]);
                             return;
                         }
                         getSupabase().from("rounds").select("loser_player_id, played_at").in("session_id", sessionIds).not("loser_player_id", "is", null).then(function (rRes) {
                             var rounds = (rRes.data || []).filter(function (r) { return r.played_at && r.played_at.slice(0, 10) === today; });
+                            if (rounds.length === 0) {
+                                renderRanking([]);
+                                return;
+                            }
                             var byPlayer = {};
                             rounds.forEach(function (r) {
                                 var id = r.loser_player_id;
