@@ -294,11 +294,11 @@
                             type: "bar",
                             data: { labels: lossLabels, datasets: [{ label: "Niederlagen", data: lossData, backgroundColor: lossColors, borderWidth: 0 }] },
                             options: {
-                                indexAxis: "y",
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 scales: {
-                                    x: { beginAtZero: true, ticks: { stepSize: 1 } }
+                                    x: { grid: { display: false } },
+                                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
                                 },
                                 plugins: {
                                     legend: { display: false },
