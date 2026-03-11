@@ -203,11 +203,30 @@
         .variant-result-section {
             display: none;
         }
+        .variant-result-section {
+            display: none;
+        }
         .variant-result-section.has-result {
             display: block;
         }
         .variant-result-card {
             animation: resultReveal 0.45s ease-out;
+        }
+        .variant-result-standalone-wrap {
+            display: none;
+        }
+        .variant-result-standalone-wrap.is-visible {
+            display: block;
+        }
+        .variant-result-standalone {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow-card);
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
         }
         @keyframes resultReveal {
             0% { opacity: 0; transform: scale(0.94); }
@@ -238,19 +257,24 @@
                             <div id="slotName" class="slot-name" aria-live="polite"></div>
                         </div>
                     </div>
-                    <div id="variantResultSection" class="variant-result-section">
-                        <div class="variant-result-card">
-                            <h2 id="variantName" class="variant-title"></h2>
-                            <div class="variant-media" id="variantMediaWrap">
-                                <img id="variantImage" src="" alt="" style="display:none;">
-                                <video id="variantVideo" controls style="display:none;">
-                                    <source src="" type="video/mp4">
-                                </video>
-                            </div>
-                            <p id="variantDescription" class="variant-description"></p>
-                        </div>
-                    </div>
                 </section>
+                <!-- Ermittelte Variante: eigene Card in der Mitte -->
+                <div id="variantResultWrapper" class="variant-result-standalone-wrap">
+                    <section class="home-section variant-result-standalone" aria-label="Ergebnis">
+                        <div id="variantResultSection" class="variant-result-section">
+                            <div class="variant-result-card">
+                                <h2 id="variantName" class="variant-title"></h2>
+                                <div class="variant-media" id="variantMediaWrap">
+                                    <img id="variantImage" src="" alt="" style="display:none;">
+                                    <video id="variantVideo" controls style="display:none;">
+                                        <source src="" type="video/mp4">
+                                    </video>
+                                </div>
+                                <p id="variantDescription" class="variant-description"></p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
             </div>
             <!-- Runde abschließen: Verlierer eintragen (immer sichtbar am unteren Rand) -->
             <section class="home-section footer-actions" aria-labelledby="section-runde-heading">
@@ -272,6 +296,7 @@
             var variantControlIdle = document.getElementById("variantControlIdle");
             var variantControlLoading = document.getElementById("variantControlLoading");
             var variantResultSection = document.getElementById("variantResultSection");
+            var variantResultWrapper = document.getElementById("variantResultWrapper");
             var variantNameEl = document.getElementById("variantName");
             var variantImage = document.getElementById("variantImage");
             var variantVideo = document.getElementById("variantVideo");
@@ -281,6 +306,7 @@
                 variantControlIdle.classList.toggle("is-active", idle);
                 variantControlLoading.classList.toggle("is-active", loading);
                 variantResultSection.classList.toggle("has-result", !!hasResult);
+                if (variantResultWrapper) variantResultWrapper.classList.toggle("is-visible", !!hasResult);
             }
 
             function loadVariants() {
