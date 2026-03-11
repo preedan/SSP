@@ -34,10 +34,17 @@
         .current-team-badge { display: inline-block; margin-left: 8px; padding: 2px 8px; background: #2a9d2a; color: #fff; border-radius: 4px; font-size: 0.85em; }
         .btn-current-team { padding: 6px 10px; font-size: 0.9em; background: #2a9d2a; min-height: 44px; box-sizing: border-box; }
         .btn-current-team:hover { background: #228b22; }
+        .add-player-card .add-player-hint { font-size: 0.9em; color: #666; margin: 0 0 12px 0; }
+        .add-player-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .add-player-row select { flex: 1; min-width: 140px; }
+        .add-player-row input { flex: 1; min-width: 140px; }
+        .add-player-row button { flex-shrink: 0; }
         @media (max-width: 480px) {
             .team-item { flex-direction: column; align-items: stretch; }
             .team-item-actions { flex-direction: column; width: 100%; }
             .team-item-actions .btn { width: 100%; min-height: 44px; box-sizing: border-box; justify-content: center; }
+            .add-player-row { flex-direction: column; align-items: stretch; }
+            .add-player-row select, .add-player-row input, .add-player-row button { width: 100%; min-width: 0; }
         }
     </style>
 </head>
@@ -49,6 +56,17 @@
         <h3>Neues Team erstellen</h3>
         <input type="text" id="teamName" placeholder="z. B. Stammtisch" maxlength="100">
         <button type="button" id="createBtn">Team erstellen</button>
+    </div>
+    <div class="card add-player-card">
+        <h3>Spieler anlegen und hinzufügen</h3>
+        <p class="add-player-hint">Wähle ein Team und gib den Namen des neuen Spielers ein (z. B. für Gäste ohne Konto).</p>
+        <div class="add-player-row">
+            <select id="playerTeamSelect" aria-label="Team auswählen">
+                <option value="">Team wählen …</option>
+            </select>
+            <input type="text" id="playerNameInput" placeholder="Name des Spielers" maxlength="100" aria-label="Name des Spielers">
+            <button type="button" id="addPlayerBtn">Spieler anlegen und hinzufügen</button>
+        </div>
     </div>
     <div id="teamList" class="card">
         <h3>Deine Teams</h3>
@@ -63,6 +81,9 @@
             var teamListContent = document.getElementById("teamListContent");
             var teamNameInput = document.getElementById("teamName");
             var createBtn = document.getElementById("createBtn");
+            var playerTeamSelect = document.getElementById("playerTeamSelect");
+            var playerNameInput = document.getElementById("playerNameInput");
+            var addPlayerBtn = document.getElementById("addPlayerBtn");
 
             function showMessage(text, type) {
                 messageEl.textContent = text;
@@ -71,6 +92,25 @@
             }
             function hideMessage() {
                 messageEl.style.display = "none";
+            }
+
+            function getCurrentTeam() {
+                try {
+                    var s = localStorage.getItem("ssp_current_team");
+                    return s ? JSON.parse(s) : null;
+                } catch (e) { return null; }
+            }
+
+            function fillPlayerTeamSelect(list, currentTeam) {
+                if (!playerTeamSelect) return;
+                var currentId = (currentTeam && currentTeam.id) ? String(currentTeam.id) : (getCurrentTeam() && getCurrentTeam().id) ? String(getCurrentTeam().id) : null;
+                playerTeamSelect.innerHTML = "<option value=''>Team wählen …</option>" +
+                    list.map(function (t) {
+                        var id = t.id || "";
+                        var name = (t.name || "Unbenannt").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+                        var sel = id === currentId ? " selected" : "";
+                        return "<option value=\"" + id + "\"" + sel + ">" + name + "</option>";
+                    }).join("");
             }
 
             /** Profil mit display_name (Pflicht). Fehlt es, Redirect zu profil.html. */
@@ -126,6 +166,7 @@
                                         teamListContent.textContent = "Keine Teams gefunden.";
                                         return;
                                     }
+                                    fillPlayerTeamSelect(list);
                                     var baseUrl = window.location.origin + window.location.pathname.replace(/[^/]+$/, "");
                                     var teamIds = list.map(function (t) { return t.id; });
                                     var ownerIds = [];
@@ -161,18 +202,18 @@
                                                 });
                                         });
                                 });
-                            function getCurrentTeam() {
+                            function getCurrentTeamLocal() {
                                 try {
                                     var s = localStorage.getItem("ssp_current_team");
                                     return s ? JSON.parse(s) : null;
                                 } catch (e) { return null; }
                             }
-                            function setCurrentTeam(id, name) {
+                            function setCurrentTeamLocal(id, name) {
                                 localStorage.setItem("ssp_current_team", JSON.stringify({ id: id, name: name || "" }));
                             }
                             function renderTeamList(list, ownerNames, currentUserId, baseUrl, membersByTeam) {
                                 membersByTeam = membersByTeam || {};
-                                var current = getCurrentTeam();
+                                var current = getCurrentTeamLocal();
                                 var currentTeamId = current && current.id;
                                 teamListContent.innerHTML = "<ul class='team-list-ul'>" +
                                     list.map(function (t) {
@@ -197,7 +238,7 @@
                                     }).join("") + "</ul>";
                                 teamListContent.querySelectorAll(".set-current-team-btn").forEach(function (btn) {
                                     btn.addEventListener("click", function () {
-                                        setCurrentTeam(this.getAttribute("data-team-id"), this.getAttribute("data-team-name"));
+                                        setCurrentTeamLocal(this.getAttribute("data-team-id"), this.getAttribute("data-team-name"));
                                         showMessage("Aktuelles Team gesetzt. Verlierer kannst du auf der Startseite eintragen.", "info");
                                         loadTeams();
                                     });
@@ -286,6 +327,36 @@
                     createBtn.disabled = false;
                 });
             });
+
+            if (addPlayerBtn && playerTeamSelect && playerNameInput) {
+                addPlayerBtn.addEventListener("click", function () {
+                    var teamId = (playerTeamSelect.value || "").trim();
+                    var name = (playerNameInput.value || "").trim();
+                    if (!teamId) {
+                        showMessage("Bitte ein Team auswählen.", "error");
+                        return;
+                    }
+                    if (!name) {
+                        showMessage("Bitte einen Namen für den Spieler eingeben.", "error");
+                        return;
+                    }
+                    addPlayerBtn.disabled = true;
+                    hideMessage();
+                    getSupabase().from("players").insert({ team_id: teamId, name: name }).then(function (res) {
+                        if (res.error) throw res.error;
+                        showMessage("Spieler \"" + name + "\" wurde dem Team hinzugefügt.", "info");
+                        playerNameInput.value = "";
+                        loadTeams();
+                    }).catch(function (err) {
+                        showMessage(err.message || "Spieler konnte nicht angelegt werden.", "error");
+                        if (err.message && err.message.indexOf("row-level security") >= 0) {
+                            console.warn("RLS: Führe supabase-players-insert-by-member.sql im Supabase SQL Editor aus.");
+                        }
+                    }).finally(function () {
+                        addPlayerBtn.disabled = false;
+                    });
+                });
+            }
 
             getSupabase().auth.getSession().then(function (r) {
                 if (!r.data.session) {
