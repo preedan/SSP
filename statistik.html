@@ -26,24 +26,14 @@
         body > .wrap .scroll-area { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
         body > .wrap .scroll-area .result-card-wrap { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; }
         body > .wrap .scroll-area .result-card-wrap .card { margin: 0; width: 100%; flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; padding: 16px 20px 16px 16px; }
-        body > .wrap .filter-card { flex-shrink: 0; margin-bottom: 16px; padding: 12px 16px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow-card); }
-        body > .wrap .filter-card .filter-card-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
-        body > .wrap .filter-card .filter-toggle-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0; border: none; border-radius: var(--radius-sm); background: var(--primary); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        body > .wrap .filter-card .filter-toggle-btn:hover { background: var(--primary-dark); }
-        body > .wrap .filter-card .filter-toggle-btn:focus { outline: 3px solid rgba(38, 123, 181, 0.5); outline-offset: 2px; }
-        body > .wrap .filter-card .filter-icon { width: 22px; height: 22px; }
-        body > .wrap .filter-card .filter-summary { margin: 0; font-size: 0.9em; color: var(--text-muted); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        body > .wrap .filter-card .filter-body[hidden] { display: none !important; }
-        body > .wrap .filter-card .filter-body { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--card-border); }
+        body > .wrap .filter-card { flex-shrink: 0; margin-bottom: 16px; padding: 16px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow-card); }
         .page-title { font-size: 1.3em; font-weight: 700; color: var(--text); margin: 0 0 16px 0; }
         .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-card); }
         .card:last-of-type { margin-bottom: 0; }
         .card h2 { margin: 0 0 8px 0; font-size: 1.1em; font-weight: 700; color: var(--text); }
         .card h2.section-title { margin-top: 20px; }
         .card h2.section-title:first-child { margin-top: 0; }
-        .filter-body[hidden] { display: none !important; }
-        .filter-body { margin-top: 12px; }
-        .filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; align-items: end; }
+        .filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; align-items: end; }
         .filter-group { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
         .filter-group label { font-size: 0.85em; font-weight: 600; color: var(--text-muted); }
         .filter-group select, .filter-group input { padding: 10px 12px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-family: inherit; font-size: 16px; min-height: 44px; box-sizing: border-box; width: 100%; background: #fff; }
@@ -96,37 +86,17 @@
         </div>
         <div id="message" class="message" style="display:none;"></div>
         <div class="filter-card">
-            <div class="filter-card-row">
-                <button type="button" id="filterToggleBtn" class="filter-toggle-btn" aria-expanded="false" aria-controls="filterBody" aria-label="Filter anzeigen">
-                    <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                </button>
-                <p id="filterSummary" class="filter-summary" aria-live="polite">Alle Filter</p>
-            </div>
-            <div id="filterBody" class="filter-body" hidden>
-                <div class="filters">
-                    <div class="filter-group">
-                        <label for="filterTeam">👥 Team</label>
-                        <select id="filterTeam">
-                            <option value="">Alle Teams</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="filterVariant">🎲 Variante</label>
-                        <select id="filterVariant">
-                            <option value="">Alle</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="filterFrom">Von (Datum & Uhrzeit)</label>
-                        <input type="datetime-local" id="filterFrom">
-                    </div>
-                    <div class="filter-group">
-                        <label for="filterTo">Bis (Datum & Uhrzeit)</label>
-                        <input type="datetime-local" id="filterTo">
-                    </div>
-                    <div class="filter-group filter-group-btn">
-                        <button type="button" id="applyBtn">Anwenden</button>
-                    </div>
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="filterFrom">Von (Datum & Uhrzeit)</label>
+                    <input type="datetime-local" id="filterFrom">
+                </div>
+                <div class="filter-group">
+                    <label for="filterTo">Bis (Datum & Uhrzeit)</label>
+                    <input type="datetime-local" id="filterTo">
+                </div>
+                <div class="filter-group filter-group-btn">
+                    <button type="button" id="applyBtn">Anwenden</button>
                 </div>
             </div>
         </div>
@@ -167,14 +137,9 @@
             var lossesChartInstance = null;
             var symbolChartInstance = null;
             var variantTableWrap = document.getElementById("variantTableWrap");
-            var filterTeam = document.getElementById("filterTeam");
-            var filterVariant = document.getElementById("filterVariant");
             var filterFrom = document.getElementById("filterFrom");
             var filterTo = document.getElementById("filterTo");
             var applyBtn = document.getElementById("applyBtn");
-            var filterToggleBtn = document.getElementById("filterToggleBtn");
-            var filterBody = document.getElementById("filterBody");
-            var filterSummary = document.getElementById("filterSummary");
             var statsRoundsCount = document.getElementById("statsRoundsCount");
             var statsTeamCard = document.getElementById("statsTeamCard");
             var statsTeamName = document.getElementById("statsTeamName");
@@ -205,7 +170,6 @@
 
             var myTeamIds = [];
             var myTeams = [];
-            var variants = [];
 
             function getCurrentTeam() {
                 try {
@@ -240,26 +204,6 @@
                 messageEl.style.display = "block";
             }
 
-            function updateFilterSummary() {
-                var teamOpt = filterTeam.options[filterTeam.selectedIndex];
-                var variantOpt = filterVariant.options[filterVariant.selectedIndex];
-                var teamText = teamOpt ? teamOpt.text : "Alle Teams";
-                var variantText = variantOpt ? variantOpt.text : "Alle";
-                var fromVal = filterFrom.value;
-                var toVal = filterTo.value;
-                var parts = [teamText, variantText];
-                if (fromVal || toVal) parts.push((fromVal || "…") + " – " + (toVal || "…"));
-                filterSummary.textContent = parts.join(" · ");
-            }
-
-            function setFilterOpen(open) {
-                var isOpen = !!open;
-                filterBody.hidden = !isOpen;
-                filterToggleBtn.setAttribute("aria-expanded", isOpen);
-                filterToggleBtn.setAttribute("aria-label", isOpen ? "Filter ausblenden" : "Filter anzeigen");
-                if (!isOpen) updateFilterSummary();
-            }
-
             function loadFilters() {
                 return getSupabase().auth.getUser().then(function (r) {
                     if (!r.data.user) {
@@ -267,55 +211,26 @@
                         return;
                     }
                     var userId = r.data.user.id;
-                    return Promise.all([
-                        getSupabase().from("team_members").select("team_id, teams(id, name)").eq("user_id", userId),
-                        getSupabase().from("variants").select("id, name").eq("is_active", true).order("name")
-                    ]).then(function (results) {
-                        var tmRes = results[0];
-                        var vRes = results[1];
+                    return getSupabase().from("team_members").select("team_id, teams(id, name)").eq("user_id", userId).then(function (tmRes) {
                         if (tmRes.error) throw tmRes.error;
-                        if (vRes.error) throw vRes.error;
                         myTeams = (tmRes.data || []).map(function (row) {
                             var t = row.teams;
                             return t ? { id: t.id, name: t.name } : null;
                         }).filter(Boolean);
                         myTeamIds = myTeams.map(function (t) { return t.id; });
-                        variants = vRes.data || [];
-                        filterTeam.innerHTML = "<option value=''>Alle Teams</option>" +
-                            myTeams.map(function (t) { return "<option value=\"" + (t.id || "") + "\">" + (t.name || "").replace(/</g, "&lt;") + "</option>"; }).join("");
-                        filterVariant.innerHTML = "<option value=''>Alle</option>" +
-                            variants.map(function (v) { return "<option value=\"" + v.id + "\">" + (v.name || "").replace(/</g, "&lt;") + "</option>"; }).join("");
-                        var currentId = null;
-                        try {
-                            var s = localStorage.getItem("ssp_current_team");
-                            var current = s ? JSON.parse(s) : null;
-                            if (current && current.id) { currentId = String(current.id); }
-                        } catch (e) {}
-                        if (currentId) {
-                            for (var i = 0; i < filterTeam.options.length; i++) {
-                                if (filterTeam.options[i].value === currentId) {
-                                    filterTeam.selectedIndex = i;
-                                    break;
-                                }
-                            }
-                        }
-                        updateFilterSummary();
                         updateStatsTeamCard();
-                        setFilterOpen(false);
                     });
                 });
             }
 
             function loadStats() {
-                var teamId = filterTeam.value || null;
-                var variantId = filterVariant.value || null;
                 var fromDate = filterFrom.value || null;
                 var toDate = filterTo.value || null;
 
                 showMessage("Lade …", "loading");
                 resultCard.style.display = "none";
 
-                var sessionTeamIds = teamId ? [teamId] : myTeamIds;
+                var sessionTeamIds = myTeamIds;
                 if (sessionTeamIds.length === 0) {
                     if (statsRoundsCount) statsRoundsCount.textContent = "–";
                     showMessage("Kein Team ausgewählt. Bitte unter „Meine Teams“ ein Team wählen.", "empty");
@@ -335,7 +250,6 @@
                     if (rRes.error) throw rRes.error;
                     var rounds = rRes.data || [];
 
-                    if (variantId) rounds = rounds.filter(function (r) { return r.variant_id === variantId; });
                     if (fromDate) rounds = rounds.filter(function (r) { return r.played_at && r.played_at.slice(0, 16) >= fromDate.slice(0, 16); });
                     if (toDate) rounds = rounds.filter(function (r) { return r.played_at && r.played_at.slice(0, 16) <= toDate.slice(0, 16); });
                     rounds = rounds.filter(function (r) { return r.loser_player_id != null; });
@@ -427,15 +341,6 @@
             }
 
             applyBtn.addEventListener("click", loadStats);
-            if (filterToggleBtn && filterBody) {
-                filterToggleBtn.addEventListener("click", function () {
-                    setFilterOpen(filterBody.hidden);
-                });
-            }
-            filterTeam.addEventListener("change", updateFilterSummary);
-            filterVariant.addEventListener("change", updateFilterSummary);
-            filterFrom.addEventListener("change", updateFilterSummary);
-            filterTo.addEventListener("change", updateFilterSummary);
             if (diagramPrev) diagramPrev.addEventListener("click", function () { showSlide(currentSlideIndex - 1); });
             if (diagramNext) diagramNext.addEventListener("click", function () { showSlide(currentSlideIndex + 1); });
 
