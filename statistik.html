@@ -25,7 +25,7 @@
         body > .wrap { flex: 1; min-height: 0; padding: 16px; width: 100%; max-width: 560px; margin: 0 auto; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; }
         body > .wrap .scroll-area { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
         body > .wrap .scroll-area .result-card-wrap { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; }
-        body > .wrap .scroll-area .result-card-wrap .card { margin: 0; width: 100%; flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+        body > .wrap .scroll-area .result-card-wrap .card { margin: 0; width: 100%; flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; padding: 16px 20px 16px 16px; }
         body > .wrap .filter-footer { flex-shrink: 0; margin-top: 16px; padding: 16px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow-card); }
         body > .wrap .filter-footer .filter-toggle-btn { width: 100%; min-height: 52px; padding: 16px 20px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 1.1em; font-weight: 700; cursor: pointer; box-sizing: border-box; }
         body > .wrap .filter-footer .filter-toggle-btn:hover { background: var(--primary-dark); }
@@ -50,15 +50,15 @@
         .filter-toggle-btn:focus, .filters .filter-group-btn button:focus { outline: 3px solid rgba(38, 123, 181, 0.5); outline-offset: 2px; }
         .filter-summary { font-size: 0.9em; color: var(--text-muted); margin-top: 6px; }
         .summary { font-size: 1em; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.4; }
-        .diagram-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-shrink: 0; }
-        .diagram-nav-title { font-size: 1.1em; font-weight: 700; color: var(--text); margin: 0; flex: 1; text-align: center; }
-        .diagram-nav-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0; border: none; border-radius: var(--radius-sm); background: rgba(38, 123, 181, 0.15); color: var(--primary); font-size: 1.4em; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .diagram-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-shrink: 0; min-width: 0; }
+        .diagram-nav-title { font-size: 1.1em; font-weight: 700; color: var(--text); margin: 0; flex: 1; min-width: 0; text-align: center; }
+        .diagram-nav-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0; border: none; border-radius: var(--radius-sm); background: rgba(38, 123, 181, 0.15); color: var(--primary); font-size: 1.4em; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .diagram-nav-btn:hover { background: rgba(38, 123, 181, 0.25); }
         .diagram-nav-btn:focus { outline: 3px solid rgba(38, 123, 181, 0.5); outline-offset: 2px; }
-        .diagram-slides { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
-        .diagram-slide { display: none; flex: 1; min-height: 0; flex-direction: column; padding: 0; }
+        .diagram-slides { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        .diagram-slide { display: none; flex: 1; min-height: 0; min-width: 0; flex-direction: column; padding: 0; overflow: hidden; }
         .diagram-slide.is-active { display: flex; }
-        .diagram-slide .chart-wrap { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; position: relative; margin: 0; max-width: none; }
+        .diagram-slide .chart-wrap { flex: 1; min-height: 0; min-width: 0; display: flex; align-items: center; justify-content: center; position: relative; margin: 0; max-width: 100%; overflow: hidden; }
         .diagram-slide .chart-wrap canvas { max-width: 100%; max-height: 100%; }
         .diagram-slide .table-wrap { flex: 1; min-height: 0; overflow: auto; -webkit-overflow-scrolling: touch; margin: 0; }
         table { width: 100%; border-collapse: collapse; min-width: 200px; }

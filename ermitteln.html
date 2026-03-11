@@ -336,18 +336,14 @@
     <div class="container">
         <div class="content-inner">
             <div class="scroll-area">
-                <!-- Variante ermitteln (nur Button oben) -->
-                <section class="home-section sticky-top" aria-label="Variante ermitteln">
-                    <button type="button" id="btnErmitteln" class="btn btn-play" disabled>🎲 Variante ermitteln</button>
-                </section>
-                <!-- Mittlerer Container: immer sichtbar – Slot-Anzeige oder Ergebnis -->
+                <!-- Card: Variante anzeigen (oben) -->
                 <div id="variantResultWrapper" class="variant-result-standalone-wrap">
                     <section class="home-section variant-result-standalone" aria-label="Ergebnis">
                         <div id="variantCenterIdle" class="variant-center-idle is-active">
                             <div class="variant-idle-media">
                                 <img src="Startpage_picture.JPG" alt="HandClash – Variante ermitteln">
                             </div>
-                            <p class="slot-placeholder">Oben auf „Variante ermitteln“ tippen</p>
+                            <p class="slot-placeholder">Unten auf „Variante ermitteln“ tippen</p>
                         </div>
                         <div id="variantCenterLoading" class="variant-center-loading">
                             <div class="slot-wrap">
@@ -374,6 +370,10 @@
                         </div>
                     </section>
                 </div>
+                <!-- Variante ermitteln (Button unter der Card) -->
+                <section class="home-section sticky-top" aria-label="Variante ermitteln">
+                    <button type="button" id="btnErmitteln" class="btn btn-play" disabled>🎲 Variante ermitteln</button>
+                </section>
             </div>
             <!-- Verlierer eintragen (immer sichtbar am unteren Rand) -->
             <section class="home-section footer-actions" aria-label="Verlierer eintragen">
