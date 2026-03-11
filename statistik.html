@@ -180,6 +180,8 @@
                 }
             }
 
+            var diagramLoaderMinMs = 500;
+
             function showSlide(index, skipLoader) {
                 var newIndex = (index % slideOrder.length + slideOrder.length) % slideOrder.length;
                 var isSwitch = newIndex !== currentSlideIndex;
@@ -197,7 +199,7 @@
                     if (lossesChartInstance) lossesChartInstance.resize();
                     if (symbolChartInstance) symbolChartInstance.resize();
                     if (isSwitch && !skipLoader) {
-                        setDiagramLoading(false);
+                        setTimeout(function () { setDiagramLoading(false); }, diagramLoaderMinMs);
                     }
                 }
                 if (isSwitch && !skipLoader) {
