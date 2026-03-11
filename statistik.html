@@ -4,97 +4,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="HandClash.png">
-    <title>Statistik – Schere, Stein, Papier</title>
+    <title>Statistik – HandClash</title>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Baloo 2', cursive; background: #f0f0f0; margin: 0; padding: 20px; }
-        #app-nav { margin: -20px -20px 0 -20px; }
-        h1 { margin-top: 0; }
-        .card { background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
-        .card h2 { margin: 0; font-size: 1.2em; }
-        .filter-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 0; flex-wrap: wrap; }
-        .filter-card-header h2 { margin: 0; }
-        .filter-toggle-btn { padding: 8px 14px; background: #e8e8e8; color: #333; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; font-size: 0.95em; cursor: pointer; min-height: 40px; }
-        .filter-toggle-btn:hover { background: #ddd; }
-        .filter-toggle-btn[aria-expanded="true"] { background: #267bb5; color: #fff; border-color: #267bb5; }
+        :root {
+            --app-bg: #eef4fb;
+            --card-bg: #ffffff;
+            --card-border: rgba(38, 123, 181, 0.12);
+            --primary: #267bb5;
+            --primary-dark: #1a5d8b;
+            --text: #1f2937;
+            --text-muted: #6b7280;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-card: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        body, html { margin: 0; min-height: 100%; display: flex; flex-direction: column; font-family: 'Baloo 2', cursive; background: var(--app-bg); -webkit-font-smoothing: antialiased; }
+        body > .wrap { flex: 1; padding: 16px; width: 100%; max-width: 560px; margin: 0 auto; box-sizing: border-box; }
+        .page-title { font-size: 1.3em; font-weight: 700; color: var(--text); margin: 0 0 16px 0; }
+        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-card); }
+        .card:last-of-type { margin-bottom: 0; }
+        .card h2 { margin: 0 0 8px 0; font-size: 1.1em; font-weight: 700; color: var(--text); }
+        .card h2.section-title { margin-top: 20px; }
+        .card h2.section-title:first-child { margin-top: 0; }
+        .filter-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .filter-header .filter-toggle-btn { padding: 8px 14px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 0.95em; font-weight: 600; cursor: pointer; min-height: 44px; }
+        .filter-toggle-btn:hover { background: var(--primary-dark); }
+        .filter-toggle-btn[aria-expanded="false"] { background: rgba(38, 123, 181, 0.15); color: var(--primary); }
         .filter-body[hidden] { display: none !important; }
         .filter-body { margin-top: 12px; }
-        .filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; align-items: end; margin-bottom: 0; }
-        .filter-group { display: flex; flex-direction: row; align-items: center; gap: 6px; min-width: 0; }
-        .filter-group label { font-size: 0.8em; color: #555; flex: 0 0 auto; min-width: 2.2em; }
-        .filter-group select, .filter-group input { padding: 6px 10px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; font-size: 16px; min-height: 40px; box-sizing: border-box; flex: 1; min-width: 0; }
+        .filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; align-items: end; }
+        .filter-group { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .filter-group label { font-size: 0.85em; font-weight: 600; color: var(--text-muted); }
+        .filter-group select, .filter-group input { padding: 10px 12px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-family: inherit; font-size: 16px; min-height: 44px; box-sizing: border-box; width: 100%; background: #fff; }
         .filters .filter-group-btn { grid-column: 1 / -1; }
-        .filters .filter-group-btn button { width: 100%; min-height: 44px; padding: 10px 16px; background: #267bb5; color: #fff; border: none; border-radius: 5px; font-family: inherit; font-size: 16px; cursor: pointer; }
-        .filters .filter-group-btn button:hover { background: #1a5d8b; }
-        .filter-summary { font-size: 0.9em; color: #555; margin-top: 4px; }
-        .summary { font-size: 1.1em; margin-bottom: 16px; }
+        .filters .filter-group-btn button { width: 100%; min-height: 48px; padding: 12px 16px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 1em; font-weight: 600; cursor: pointer; }
+        .filters .filter-group-btn button:hover { background: var(--primary-dark); }
+        .filter-toggle-btn:focus, .filters .filter-group-btn button:focus { outline: 3px solid rgba(38, 123, 181, 0.5); outline-offset: 2px; }
+        .filter-summary { font-size: 0.9em; color: var(--text-muted); margin-top: 6px; }
+        .summary { font-size: 1em; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.4; }
         .chart-wrap { margin-bottom: 16px; max-width: 320px; }
         .chart-wrap canvas { max-height: 280px; }
-        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 8px; }
         table { width: 100%; border-collapse: collapse; min-width: 200px; }
         th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #eee; }
-        th { background: #f5f5f5; font-weight: 700; }
-        @media (max-width: 520px) {
-            .filters { grid-template-columns: 1fr 1fr; gap: 8px; }
-            .filters .filter-group-btn { grid-column: 1 / -1; }
-            .filter-group { flex-direction: column; align-items: stretch; gap: 2px; }
-            .filter-group label { min-width: 0; }
-        }
-        .message { padding: 12px; border-radius: 5px; margin-bottom: 12px; }
-        .message.loading { background: #e7f3ff; color: #333; }
+        th { background: #f8fafc; font-weight: 700; color: var(--text); font-size: 0.9em; }
+        td { color: var(--text); }
+        @media (max-width: 520px) { .filters { grid-template-columns: 1fr 1fr; } .filters .filter-group-btn { grid-column: 1 / -1; } }
+        .message { padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 16px; }
+        .message.loading { background: #e7f3ff; color: var(--text); }
         .message.error { background: #fee; color: #c00; }
-        .message.empty { background: #f9f9f9; color: #666; }
-        .pct { color: #555; font-size: 0.9em; }
+        .message.empty { background: #f8fafc; color: var(--text-muted); }
     </style>
 </head>
 <body>
     <div id="app-nav"></div>
-    <h1>Statistik</h1>
-    <div id="message" class="message" style="display:none;"></div>
-    <div class="card" id="filterCard">
-        <div class="filter-card-header">
-            <h2>Filter</h2>
-            <button type="button" id="filterToggleBtn" class="filter-toggle-btn" aria-expanded="true" aria-controls="filterBody">Filter ausblenden</button>
+    <div class="wrap">
+        <h1 class="page-title">📊 Statistik</h1>
+        <div id="message" class="message" style="display:none;"></div>
+        <div class="card" id="filterCard">
+            <div class="filter-header">
+                <h2>🔍 Filter</h2>
+                <button type="button" id="filterToggleBtn" class="filter-toggle-btn" aria-expanded="true" aria-controls="filterBody">Filter ausblenden</button>
+            </div>
+            <p id="filterSummary" class="filter-summary" aria-live="polite" style="display:none;"></p>
+            <div id="filterBody" class="filter-body">
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="filterTeam">👥 Team</label>
+                        <select id="filterTeam">
+                            <option value="">Alle Teams</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterVariant">🎲 Variante</label>
+                        <select id="filterVariant">
+                            <option value="">Alle</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterFrom">Von</label>
+                        <input type="date" id="filterFrom">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterTo">Bis</label>
+                        <input type="date" id="filterTo">
+                    </div>
+                    <div class="filter-group filter-group-btn">
+                        <button type="button" id="applyBtn">Anwenden</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <p id="filterSummary" class="filter-summary" aria-live="polite" style="display:none;"></p>
-        <div id="filterBody" class="filter-body">
-        <div class="filters">
-            <div class="filter-group">
-                <label for="filterTeam">Team</label>
-                <select id="filterTeam">
-                    <option value="">Alle meine Teams</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="filterVariant">Variante</label>
-                <select id="filterVariant">
-                    <option value="">Alle Varianten</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="filterFrom">Von</label>
-                <input type="date" id="filterFrom">
-            </div>
-            <div class="filter-group">
-                <label for="filterTo">Bis</label>
-                <input type="date" id="filterTo">
-            </div>
-            <div class="filter-group filter-group-btn">
-                <button type="button" id="applyBtn">Anwenden</button>
-            </div>
+        <div class="card" id="resultCard" style="display:none;">
+            <h2 class="section-title">Überblick</h2>
+            <p class="summary" id="summaryText"></p>
+            <h2 class="section-title">👤 Verluste pro Spieler</h2>
+            <div id="lossesChartWrap" class="chart-wrap"></div>
+            <h2 class="section-title">✊ Verluste nach Symbol</h2>
+            <p class="summary" id="symbolSummaryText"></p>
+            <div id="symbolChartWrap" class="chart-wrap"></div>
+            <h2 class="section-title">🎲 Runden pro Variante</h2>
+            <div id="variantTableWrap" class="table-wrap"></div>
         </div>
-        </div>
-    </div>
-    <div class="card" id="resultCard" style="display:none;">
-        <h2>Zusammenfassung</h2>
-        <p class="summary" id="summaryText"></p>
-        <h2>Verluste pro Spieler</h2>
-        <div id="lossesChartWrap" class="chart-wrap"></div>
-        <h2 style="margin-top:20px;">Verluste nach Symbol</h2>
-        <p class="summary" id="symbolSummaryText"></p>
-        <div id="symbolChartWrap" class="chart-wrap"></div>
-        <h2 style="margin-top:20px;">Runden pro Variante</h2>
-        <div id="variantTableWrap" class="table-wrap"></div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -134,11 +147,11 @@
                 var teamOpt = filterTeam.options[filterTeam.selectedIndex];
                 var variantOpt = filterVariant.options[filterVariant.selectedIndex];
                 var teamText = teamOpt ? teamOpt.text : "Alle Teams";
-                var variantText = variantOpt ? variantOpt.text : "Alle Varianten";
+                var variantText = variantOpt ? variantOpt.text : "Alle";
                 var fromVal = filterFrom.value;
                 var toVal = filterTo.value;
                 var parts = [teamText, variantText];
-                if (fromVal || toVal) parts.push((fromVal || "…") + " bis " + (toVal || "…"));
+                if (fromVal || toVal) parts.push((fromVal || "…") + " – " + (toVal || "…"));
                 filterSummary.textContent = parts.join(" · ");
             }
 
@@ -172,9 +185,9 @@
                         }).filter(Boolean);
                         myTeamIds = myTeams.map(function (t) { return t.id; });
                         variants = vRes.data || [];
-                        filterTeam.innerHTML = "<option value=''>Alle meine Teams</option>" +
+                        filterTeam.innerHTML = "<option value=''>Alle Teams</option>" +
                             myTeams.map(function (t) { return "<option value=\"" + (t.id || "") + "\">" + (t.name || "").replace(/</g, "&lt;") + "</option>"; }).join("");
-                        filterVariant.innerHTML = "<option value=''>Alle Varianten</option>" +
+                        filterVariant.innerHTML = "<option value=''>Alle</option>" +
                             variants.map(function (v) { return "<option value=\"" + v.id + "\">" + (v.name || "").replace(/</g, "&lt;") + "</option>"; }).join("");
                         var currentId = null;
                         try {
@@ -207,7 +220,7 @@
 
                 var sessionTeamIds = teamId ? [teamId] : myTeamIds;
                 if (sessionTeamIds.length === 0) {
-                    showMessage("Du bist in keinem Team. Trete einem Team bei oder erstelle eines.", "empty");
+                    showMessage("Kein Team ausgewählt. Bitte unter „Meine Teams“ ein Team wählen.", "empty");
                     return;
                 }
 
@@ -215,7 +228,7 @@
                     if (sRes.error) throw sRes.error;
                     var sessionIds = (sRes.data || []).map(function (s) { return s.id; });
                     if (sessionIds.length === 0) {
-                        showMessage("Keine Sessions gefunden. Spiele ein paar Runden, dann erscheinen hier Statistiken.", "empty");
+                        showMessage("Noch keine Runden. Einfach spielen – dann erscheinen hier die Statistiken.", "empty");
                         return;
                     }
                     return getSupabase().from("rounds").select("id, session_id, variant_id, loser_player_id, symbol, played_at, loser:loser_player_id(name), variant:variant_id(name)").in("session_id", sessionIds);
@@ -231,8 +244,8 @@
                     var total = rounds.length;
                     var lossesByPlayer = {};
                     var countByVariant = {};
-                    var countBySymbol = { scissors: 0, rock: 0, paper: 0, none: 0 };
-                    var symbolLabels = { scissors: "Schere", rock: "Stein", paper: "Papier", none: "Ohne Angabe" };
+                    var countBySymbol = { scissors: 0, rock: 0, paper: 0 };
+                    var symbolLabels = { scissors: "Schere", rock: "Stein", paper: "Papier" };
                     rounds.forEach(function (r) {
                         var name = (r.loser && r.loser.name) ? r.loser.name : "Unbekannt";
                         if (!lossesByPlayer[name]) lossesByPlayer[name] = 0;
@@ -240,15 +253,15 @@
                         var vname = (r.variant && r.variant.name) ? r.variant.name : "Unbekannt";
                         if (!countByVariant[vname]) countByVariant[vname] = 0;
                         countByVariant[vname]++;
-                        var sym = (r.symbol && (r.symbol === "scissors" || r.symbol === "rock" || r.symbol === "paper")) ? r.symbol : "none";
-                        countBySymbol[sym]++;
+                        var sym = (r.symbol && (r.symbol === "scissors" || r.symbol === "rock" || r.symbol === "paper")) ? r.symbol : null;
+                        if (sym) countBySymbol[sym]++;
                     });
 
                     var lossRows = Object.keys(lossesByPlayer).sort(function (a, b) { return lossesByPlayer[b] - lossesByPlayer[a]; });
                     var variantRows = Object.keys(countByVariant).sort(function (a, b) { return countByVariant[b] - countByVariant[a]; });
-                    var symbolOrder = ["scissors", "rock", "paper", "none"];
+                    var symbolOrder = ["scissors", "rock", "paper"];
 
-                    summaryText.textContent = total + " Runde(n) im gewählten Zeitraum.";
+                    summaryText.textContent = total + " Runden im gewählten Zeitraum.";
 
                     if (lossesChartInstance) { lossesChartInstance.destroy(); lossesChartInstance = null; }
                     if (symbolChartInstance) { symbolChartInstance.destroy(); symbolChartInstance = null; }
@@ -270,8 +283,8 @@
 
                     var withSymbol = countBySymbol.scissors + countBySymbol.rock + countBySymbol.paper;
                     symbolSummaryText.textContent = withSymbol === 0
-                        ? "Bei keiner Runde wurde ein Symbol erfasst. Beim Eintragen kannst du optional „Symbol des Verlierers“ angeben."
-                        : "Anteil der Verluste pro Symbol (von " + total + " Runden, " + withSymbol + " mit Symbol).";
+                        ? "Keine Symbole erfasst. Beim Eintragen optional angeben."
+                        : total + " Runden, " + withSymbol + " mit Symbol.";
                     if (total === 0) {
                         symbolChartWrap.innerHTML = "";
                     } else {
@@ -286,7 +299,7 @@
                         });
                     }
 
-                    variantTableWrap.innerHTML = total === 0 ? "" : "<table><thead><tr><th>Variante</th><th>Anzahl Runden</th></tr></thead><tbody>" +
+                    variantTableWrap.innerHTML = total === 0 ? "" : "<table><thead><tr><th>Variante</th><th>Runden</th></tr></thead><tbody>" +
                         variantRows.map(function (name) {
                             return "<tr><td>" + name.replace(/</g, "&lt;") + "</td><td>" + countByVariant[name] + "</td></tr>";
                         }).join("") + "</tbody></table>";
@@ -294,7 +307,7 @@
                     resultCard.style.display = "block";
                     messageEl.style.display = "none";
                 }).catch(function (err) {
-                    showMessage(err.message || "Statistik konnte nicht geladen werden.", "error");
+                    showMessage(err.message || "Laden fehlgeschlagen.", "error");
                 });
             }
 
@@ -311,7 +324,7 @@
             loadFilters().then(function () {
                 loadStats();
             }).catch(function (err) {
-                showMessage(err.message || "Filter konnten nicht geladen werden.", "error");
+                showMessage(err.message || "Filter laden fehlgeschlagen.", "error");
             });
         })();
     </script>

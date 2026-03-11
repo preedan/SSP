@@ -53,8 +53,8 @@
                     </div>
                     <div class="form-group">
                         <label>✊ Symbol des Verlierers</label>
-                        <select id="symbol">
-                            <option value="">– optional –</option>
+                        <select id="symbol" required>
+                            <option value="">– Bitte wählen –</option>
                             <option value="scissors">✂️ Schere</option>
                             <option value="rock">🪨 Stein</option>
                             <option value="paper">📄 Papier</option>
@@ -152,6 +152,10 @@
                 }
                 if (!loserId) {
                     showMessage("Bitte einen Verlierer wählen.", "error");
+                    return;
+                }
+                if (!symbol) {
+                    showMessage("Bitte ein Symbol des Verlierers wählen.", "error");
                     return;
                 }
                 submitBtn.disabled = true;
