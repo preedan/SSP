@@ -26,12 +26,15 @@
         body > .wrap .scroll-area { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
         body > .wrap .scroll-area .result-card-wrap { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; }
         body > .wrap .scroll-area .result-card-wrap .card { margin: 0; width: 100%; flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; padding: 16px 20px 16px 16px; }
-        body > .wrap .filter-footer { flex-shrink: 0; margin-top: 16px; padding: 16px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow-card); }
-        body > .wrap .filter-footer .filter-toggle-btn { width: 100%; min-height: 52px; padding: 16px 20px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 1.1em; font-weight: 700; cursor: pointer; box-sizing: border-box; }
-        body > .wrap .filter-footer .filter-toggle-btn:hover { background: var(--primary-dark); }
-        body > .wrap .filter-footer .filter-toggle-btn:focus { outline: 3px solid rgba(38, 123, 181, 0.5); outline-offset: 2px; }
-        body > .wrap .filter-footer .filter-body[hidden] { display: none !important; }
-        body > .wrap .filter-footer .filter-body { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--card-border); }
+        body > .wrap .filter-card { flex-shrink: 0; margin-bottom: 16px; padding: 12px 16px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow-card); }
+        body > .wrap .filter-card .filter-card-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        body > .wrap .filter-card .filter-toggle-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0; border: none; border-radius: var(--radius-sm); background: var(--primary); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        body > .wrap .filter-card .filter-toggle-btn:hover { background: var(--primary-dark); }
+        body > .wrap .filter-card .filter-toggle-btn:focus { outline: 3px solid rgba(38, 123, 181, 0.5); outline-offset: 2px; }
+        body > .wrap .filter-card .filter-icon { width: 22px; height: 22px; }
+        body > .wrap .filter-card .filter-summary { margin: 0; font-size: 0.9em; color: var(--text-muted); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        body > .wrap .filter-card .filter-body[hidden] { display: none !important; }
+        body > .wrap .filter-card .filter-body { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--card-border); }
         .page-title { font-size: 1.3em; font-weight: 700; color: var(--text); margin: 0 0 16px 0; }
         .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-card); }
         .card:last-of-type { margin-bottom: 0; }
@@ -48,7 +51,6 @@
         .filters .filter-group-btn button { width: 100%; min-height: 48px; padding: 12px 16px; background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); font-family: inherit; font-size: 1em; font-weight: 600; cursor: pointer; }
         .filters .filter-group-btn button:hover { background: var(--primary-dark); }
         .filter-toggle-btn:focus, .filters .filter-group-btn button:focus { outline: 3px solid rgba(38, 123, 181, 0.5); outline-offset: 2px; }
-        .filter-summary { font-size: 0.9em; color: var(--text-muted); margin-top: 6px; }
         .summary { font-size: 1em; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.4; }
         .diagram-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-shrink: 0; min-width: 0; }
         .diagram-nav-title { font-size: 1.1em; font-weight: 700; color: var(--text); margin: 0; flex: 1; min-width: 0; text-align: center; }
@@ -93,31 +95,13 @@
             </div>
         </div>
         <div id="message" class="message" style="display:none;"></div>
-        <div class="scroll-area">
-            <div class="result-card-wrap">
-                <div class="card" id="resultCard" style="display:none;">
-                    <div class="diagram-nav">
-                        <button type="button" class="diagram-nav-btn" id="diagramPrev" aria-label="Vorheriges Diagramm">‹</button>
-                        <h2 class="diagram-nav-title" id="diagramTitle">Niederlagen pro Spieler</h2>
-                        <button type="button" class="diagram-nav-btn" id="diagramNext" aria-label="Nächstes Diagramm">›</button>
-                    </div>
-                    <div class="diagram-slides">
-                        <div class="diagram-slide is-active" id="slidePlayer" data-title="Niederlagen pro Spieler">
-                            <div id="lossesChartWrap" class="chart-wrap"></div>
-                        </div>
-                        <div class="diagram-slide" id="slideSymbol" data-title="Niederlagen nach Symbol">
-                            <div id="symbolChartWrap" class="chart-wrap"></div>
-                        </div>
-                        <div class="diagram-slide" id="slideVariant" data-title="🎲 Runden pro Variante">
-                            <div id="variantTableWrap" class="table-wrap"></div>
-                        </div>
-                    </div>
-                </div>
+        <div class="filter-card">
+            <div class="filter-card-row">
+                <button type="button" id="filterToggleBtn" class="filter-toggle-btn" aria-expanded="false" aria-controls="filterBody" aria-label="Filter anzeigen">
+                    <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                </button>
+                <p id="filterSummary" class="filter-summary" aria-live="polite">Alle Filter</p>
             </div>
-        </div>
-        <div class="filter-footer">
-            <button type="button" id="filterToggleBtn" class="filter-toggle-btn" aria-expanded="false" aria-controls="filterBody">🔍 Filter</button>
-            <p id="filterSummary" class="filter-summary" aria-live="polite" style="display:none;"></p>
             <div id="filterBody" class="filter-body" hidden>
                 <div class="filters">
                     <div class="filter-group">
@@ -142,6 +126,28 @@
                     </div>
                     <div class="filter-group filter-group-btn">
                         <button type="button" id="applyBtn">Anwenden</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-area">
+            <div class="result-card-wrap">
+                <div class="card" id="resultCard" style="display:none;">
+                    <div class="diagram-nav">
+                        <button type="button" class="diagram-nav-btn" id="diagramPrev" aria-label="Vorheriges Diagramm">‹</button>
+                        <h2 class="diagram-nav-title" id="diagramTitle">Niederlagen pro Spieler</h2>
+                        <button type="button" class="diagram-nav-btn" id="diagramNext" aria-label="Nächstes Diagramm">›</button>
+                    </div>
+                    <div class="diagram-slides">
+                        <div class="diagram-slide is-active" id="slidePlayer" data-title="Niederlagen pro Spieler">
+                            <div id="lossesChartWrap" class="chart-wrap"></div>
+                        </div>
+                        <div class="diagram-slide" id="slideSymbol" data-title="Niederlagen nach Symbol">
+                            <div id="symbolChartWrap" class="chart-wrap"></div>
+                        </div>
+                        <div class="diagram-slide" id="slideVariant" data-title="🎲 Runden pro Variante">
+                            <div id="variantTableWrap" class="table-wrap"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -250,8 +256,7 @@
                 var isOpen = !!open;
                 filterBody.hidden = !isOpen;
                 filterToggleBtn.setAttribute("aria-expanded", isOpen);
-                filterToggleBtn.textContent = isOpen ? "Filter ausblenden" : "🔍 Filter";
-                filterSummary.style.display = isOpen ? "none" : "block";
+                filterToggleBtn.setAttribute("aria-label", isOpen ? "Filter ausblenden" : "Filter anzeigen");
                 if (!isOpen) updateFilterSummary();
             }
 
