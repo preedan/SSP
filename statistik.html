@@ -233,7 +233,8 @@
                 showMessage("Lade …", "loading");
                 if (resultCard) resultCard.style.display = "none";
 
-                var sessionTeamIds = myTeamIds;
+                var currentTeam = getCurrentTeam();
+                var sessionTeamIds = (currentTeam && currentTeam.id) ? [currentTeam.id] : [];
                 if (sessionTeamIds.length === 0) {
                     if (statsRoundsCount) statsRoundsCount.textContent = "–";
                     showMessage("Kein Team ausgewählt. Bitte unter „Meine Teams“ ein Team wählen.", "empty");
