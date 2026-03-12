@@ -247,10 +247,11 @@
                     if (sessionIds.length === 0) {
                         if (statsRoundsCount) statsRoundsCount.textContent = "0";
                         showMessage("Noch keine Runden. Einfach spielen – dann erscheinen hier die Statistiken.", "empty");
-                        return;
+                        return Promise.resolve({ data: [], error: null, noSessions: true });
                     }
                     return getSupabase().from("rounds").select("id, session_id, variant_id, loser_player_id, symbol, played_at, loser:loser_player_id(name), variant:variant_id(name)").in("session_id", sessionIds);
                 }).then(function (rRes) {
+                    if (!rRes || rRes.noSessions) return;
                     if (rRes.error) throw rRes.error;
                     var rounds = rRes.data || [];
 
